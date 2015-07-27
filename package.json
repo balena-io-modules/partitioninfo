@@ -32,13 +32,13 @@
     "gulp-mocha": "~2.0.0",
     "gulp-util": "~3.0.1",
     "jsdoc-to-markdown": "^1.1.1",
-    "lodash": "^3.10.0",
     "mocha": "~2.0.1",
     "mochainon": "^1.0.0",
     "mock-fs": "^3.0.0"
   },
   "dependencies": {
     "bluebird": "^2.9.32",
+    "lodash": "^3.10.0",
     "mbr": "^0.4.4",
     "tmp": "0.0.26"
   }
