@@ -1,5 +1,8 @@
 Promise = require('bluebird')
+_ = require('lodash')
+MBR = require('mbr')
 partition = require('./partition')
+bootRecord = require('./boot-record')
 
 ###*
 # @module partitioninfo
@@ -30,3 +33,40 @@ exports.get = (image, definition) ->
 		return Promise.props
 			offset: parsedPartition.byteOffset()
 			size: parsedPartition.byteSize()
+
+###*
+# @summary Read all partition tables from a disk image recursively.
+# @public
+# @function
+#
+# @param {String} image - image path
+# @param {Number} [offset=0] - where the first partition table will be read from, in bytes
+#
+# @returns {Promise<Array<Object>>} partitions information
+#
+# @example
+# partitioninfo.getPartitions('foo/bar.img')
+# .then (information) ->
+# 	for partition in information
+# 		console.log(partition.offset)
+# 		console.log(partition.size)
+###
+exports.getPartitions = getPartitions = (image, offset = 0) ->
+	Promise.try ->
+		if offset is 0
+			bootRecord.getMaster(image)
+		else
+			bootRecord.getExtended(image, offset)
+	.get('partitions')
+	.filter(_.property('type')) # mbr module returns type=0 partitions if there isnt one
+	.map (partition) ->
+		partition =
+			offset: offset + partition.byteOffset()
+			size: partition.byteSize()
+			type: partition.type
+		if not MBR.Partition.isExtended(partition.type)
+			return [ partition ]
+		getPartitions(image, partition.offset)
+		.then (ps) ->
+			[ partition ].concat(ps)
+	.then(_.flatten)
