@@ -1,6 +1,5 @@
 m = require('mochainon')
 Promise = require('bluebird')
-_ = require('lodash')
 partition = require('../lib/partition')
 bootRecord = require('../lib/boot-record')
 
