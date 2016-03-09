@@ -77,10 +77,10 @@ exports.parse = function(mbrBuffer) {
 
 exports.getExtended = function(image, position) {
   return exports.read(image, position).then(function(buffer) {
-    var result;
+    var error, result;
     try {
       result = exports.parse(buffer);
-    } catch (_error) {
+    } catch (error) {
       return;
     }
     return result;

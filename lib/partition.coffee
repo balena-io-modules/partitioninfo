@@ -1,4 +1,3 @@
-_ = require('lodash')
 Promise = require('bluebird')
 fs = Promise.promisifyAll(require('fs'))
 bootRecord = require('./boot-record')

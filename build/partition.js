@@ -1,6 +1,4 @@
-var Promise, SECTOR_SIZE, bootRecord, fs, _;
-
-_ = require('lodash');
+var Promise, SECTOR_SIZE, bootRecord, fs;
 
 Promise = require('bluebird');
 
