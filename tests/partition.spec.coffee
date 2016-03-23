@@ -1,7 +1,11 @@
 m = require('mochainon')
 Promise = require('bluebird')
+fs = require('fs')
 partition = require('../lib/partition')
 bootRecord = require('../lib/boot-record')
+
+# Dumped MBR from real images downloaded from dashboard.resin.io
+rpiMBR = fs.readFileSync('./tests/mbr/rpi.data')
 
 describe 'Partition:', ->
 
@@ -25,37 +29,16 @@ describe 'Partition:', ->
 					partition.getPartition(@record, 5)
 				.to.throw('Partition not found: 5.')
 
-	describe '.getPartitionOffset()', ->
-
-		it 'should multiply firstLBA with 512', ->
-			result = partition.getPartitionOffset(firstLBA: 512)
-			m.chai.expect(result).to.equal(262144)
-
-	describe '.getPartitionSize()', ->
-
-		describe 'given a raspberry pi 1 config partition', ->
-
-			beforeEach ->
-				@partition =
-					sectors: 8192
-
-			it 'should return the correct byte size', ->
-				m.chai.expect(partition.getPartitionSize(@partition)).to.equal(4194304)
-
 	describe '.getPartitionFromDefinition()', ->
 
 		describe 'given an invalid primary partition', ->
 
 			beforeEach ->
-				@bootRecordGetMasterStub = m.sinon.stub(bootRecord, 'getMaster')
-				@bootRecordGetMasterStub.returns Promise.resolve
-					partitions: [
-						{ firstLBA: 256, info: 'first' }
-						{ firstLBA: 512, info: 'second' }
-					]
+				@bootRecordReadStub = m.sinon.stub(bootRecord, 'read')
+				@bootRecordReadStub.withArgs('image', 0).returns(Promise.resolve(rpiMBR))
 
 			afterEach ->
-				@bootRecordGetMasterStub.restore()
+				@bootRecordReadStub.restore()
 
 			it 'should return an error', ->
 				promise = partition.getPartitionFromDefinition('image', primary: 5)
@@ -64,27 +47,21 @@ describe 'Partition:', ->
 		describe 'given a valid primary partition', ->
 
 			beforeEach ->
-				@bootRecordGetMasterStub = m.sinon.stub(bootRecord, 'getMaster')
-				@bootRecordGetMasterStub.returns Promise.resolve
-					partitions: [
-						{ firstLBA: 256, info: 'first' }
-						{ firstLBA: 512, info: 'second' }
-					]
+				@bootRecordReadStub = m.sinon.stub(bootRecord, 'read')
+				@bootRecordReadStub.withArgs('image', 0).returns(Promise.resolve(rpiMBR))
 
 			afterEach ->
-				@bootRecordGetMasterStub.restore()
+				@bootRecordReadStub.restore()
 
 			it 'should return the primary partition if no logical partition', ->
 				promise = partition.getPartitionFromDefinition('image', { primary: 1 })
-				m.chai.expect(promise).to.become
-					firstLBA: 256
-					info: 'first'
+				m.chai.expect(promise).to.eventually.have.property('firstLBA').that.equals(8192)
+				m.chai.expect(promise).to.eventually.have.property('sectors').that.equals(40960)
 
 			it 'should return the primary partition if logical partition is zero', ->
 				promise = partition.getPartitionFromDefinition('image', { primary: 1, logical: 0 })
-				m.chai.expect(promise).to.become
-					firstLBA: 256
-					info: 'first'
+				m.chai.expect(promise).to.eventually.have.property('firstLBA').that.equals(8192)
+				m.chai.expect(promise).to.eventually.have.property('sectors').that.equals(40960)
 
 			describe 'given partition is not extended', ->
 
@@ -119,5 +96,5 @@ describe 'Partition:', ->
 				it 'should return the logical partition', ->
 					promise = partition.getPartitionFromDefinition('image', { primary: 1, logical: 2 })
 					m.chai.expect(promise).to.become
-						firstLBA: 2304
+						firstLBA: 10240 # rpiMBR extended offset + getExtendedStub offset
 						info: 'fourth'

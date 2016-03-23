@@ -28,5 +28,5 @@ partition = require('./partition')
 exports.get = (image, definition) ->
 	partition.getPartitionFromDefinition(image, definition).then (parsedPartition) ->
 		return Promise.props
-			offset: partition.getPartitionOffset(parsedPartition)
-			size: partition.getPartitionSize(parsedPartition)
+			offset: parsedPartition.byteOffset()
+			size: parsedPartition.byteSize()

@@ -1,7 +1,11 @@
 m = require('mochainon')
 Promise = require('bluebird')
+fs = require 'fs'
 partitioninfo = require('../lib/partitioninfo')
 partition = require('../lib/partition')
+bootRecord = require('../lib/boot-record')
+
+rpiMBR = fs.readFileSync('./tests/mbr/rpi.data')
 
 describe 'Partitioninfo:', ->
 
@@ -10,18 +14,14 @@ describe 'Partitioninfo:', ->
 		describe 'given a valid partition', ->
 
 			beforeEach ->
-				@getPartitionFromDefinitionStub = m.sinon.stub(partition, 'getPartitionFromDefinition')
-				@getPartitionFromDefinitionStub.returns Promise.resolve
-					status: 128
-					type: 12
-					sectors: 40960
-					firstLBA: 8192
+				@bootRecordReadStub = m.sinon.stub(bootRecord, 'read')
+				@bootRecordReadStub.returns(Promise.resolve(rpiMBR))
 
 			afterEach ->
-				@getPartitionFromDefinitionStub.restore()
+				@bootRecordReadStub.restore()
 
 			it 'should return an information object', ->
-				promise = partitioninfo.get('foo/bar.img')
+				promise = partitioninfo.get('mbr/rpi', primary: 1)
 				m.chai.expect(promise).to.eventually.become
 					offset: 4194304
 					size: 20971520
