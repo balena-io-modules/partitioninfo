@@ -25,34 +25,6 @@ exports.getPartition = (record, number) ->
 	return result
 
 ###*
-# @summary Get a partition offset
-# @protected
-# @function
-#
-# @param {Object} partition - partition
-# @returns {Number} partition offset
-#
-# @example
-# offset = partition.getPartitionOffset(myPartition)
-###
-exports.getPartitionOffset = (partition) ->
-	return partition.firstLBA * SECTOR_SIZE
-
-###*
-# @summary Get the partition size in bytes
-# @protected
-# @function
-#
-# @param {Object} partition - partition
-# @returns {Number} partition size
-#
-# @example
-# size = partition.getPartitionSize(myPartition)
-###
-exports.getPartitionSize = (partition) ->
-	return partition.sectors * SECTOR_SIZE
-
-###*
 # @summary Get a partition object from a definition
 # @protected
 # @function
@@ -75,7 +47,7 @@ exports.getPartitionFromDefinition = (image, definition) ->
 		if not definition.logical? or definition.logical is 0
 			return primaryPartition
 
-		primaryPartitionOffset = exports.getPartitionOffset(primaryPartition)
+		primaryPartitionOffset = primaryPartition.byteOffset()
 
 		bootRecord.getExtended(image, primaryPartitionOffset).then (ebr) ->
 

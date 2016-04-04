@@ -33,40 +33,6 @@ exports.getPartition = function(record, number) {
 
 
 /**
- * @summary Get a partition offset
- * @protected
- * @function
- *
- * @param {Object} partition - partition
- * @returns {Number} partition offset
- *
- * @example
- * offset = partition.getPartitionOffset(myPartition)
- */
-
-exports.getPartitionOffset = function(partition) {
-  return partition.firstLBA * SECTOR_SIZE;
-};
-
-
-/**
- * @summary Get the partition size in bytes
- * @protected
- * @function
- *
- * @param {Object} partition - partition
- * @returns {Number} partition size
- *
- * @example
- * size = partition.getPartitionSize(myPartition)
- */
-
-exports.getPartitionSize = function(partition) {
-  return partition.sectors * SECTOR_SIZE;
-};
-
-
-/**
  * @summary Get a partition object from a definition
  * @protected
  * @function
@@ -90,7 +56,7 @@ exports.getPartitionFromDefinition = function(image, definition) {
     if ((definition.logical == null) || definition.logical === 0) {
       return primaryPartition;
     }
-    primaryPartitionOffset = exports.getPartitionOffset(primaryPartition);
+    primaryPartitionOffset = primaryPartition.byteOffset();
     return bootRecord.getExtended(image, primaryPartitionOffset).then(function(ebr) {
       var logicalPartition;
       if (ebr == null) {
