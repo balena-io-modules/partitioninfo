@@ -21,6 +21,11 @@ $ npm install --save partitioninfo
 Documentation
 -------------
 
+
+* [partitioninfo](#module_partitioninfo)
+    * [.get(image, definition)](#module_partitioninfo.get) ⇒ <code>Promise.&lt;Object&gt;</code>
+    * [.getPartitions(image, [offset])](#module_partitioninfo.getPartitions) ⇒ <code>Promise.&lt;Array.&lt;Object&gt;&gt;</code>
+
 <a name="module_partitioninfo.get"></a>
 ### partitioninfo.get(image, definition) ⇒ <code>Promise.&lt;Object&gt;</code>
 **Kind**: static method of <code>[partitioninfo](#module_partitioninfo)</code>  
@@ -43,6 +48,26 @@ partitioninfo.get 'foo/bar.img',
 .then (information) ->
 	console.log(information.offset)
 	console.log(information.size)
+```
+<a name="module_partitioninfo.getPartitions"></a>
+### partitioninfo.getPartitions(image, [offset]) ⇒ <code>Promise.&lt;Array.&lt;Object&gt;&gt;</code>
+**Kind**: static method of <code>[partitioninfo](#module_partitioninfo)</code>  
+**Summary**: Read all partition tables from a disk image recursively.  
+**Returns**: <code>Promise.&lt;Array.&lt;Object&gt;&gt;</code> - partitions information  
+**Access:** public  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| image | <code>String</code> |  | image path |
+| [offset] | <code>Number</code> | <code>0</code> | where the first partition table will be read from, in bytes |
+
+**Example**  
+```js
+partitioninfo.getPartitions('foo/bar.img')
+.then (information) ->
+	for partition in information
+		console.log(partition.offset)
+		console.log(partition.size)
 ```
 
 Support
