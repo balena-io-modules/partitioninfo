@@ -22,7 +22,7 @@ BOOT_RECORD_SIZE = 512
 exports.read = (image, position = 0) ->
 	result = new Buffer(BOOT_RECORD_SIZE)
 
-	fs.openAsync(image, 'r+').then (fd) ->
+	fs.openAsync(image, 'r').then (fd) ->
 		return fs.readAsync(fd, result, 0, BOOT_RECORD_SIZE, position).return(fd)
 	.then (fd) ->
 		return fs.closeAsync(fd)

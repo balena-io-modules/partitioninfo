@@ -1,4 +1,4 @@
-var BOOT_RECORD_SIZE, MasterBootRecord, Promise, fs, getMaster;
+var BOOT_RECORD_SIZE, MasterBootRecord, Promise, fs;
 
 Promise = require('bluebird');
 
@@ -31,7 +31,7 @@ exports.read = function(image, position) {
     position = 0;
   }
   result = new Buffer(BOOT_RECORD_SIZE);
-  return fs.openAsync(image, 'r+').then(function(fd) {
+  return fs.openAsync(image, 'r').then(function(fd) {
     return fs.readAsync(fd, result, 0, BOOT_RECORD_SIZE, position)["return"](fd);
   }).then(function(fd) {
     return fs.closeAsync(fd);
@@ -77,10 +77,10 @@ exports.parse = function(mbrBuffer) {
 
 exports.getExtended = function(image, position) {
   return exports.read(image, position).then(function(buffer) {
-    var result;
+    var error, result;
     try {
       result = exports.parse(buffer);
-    } catch (_error) {
+    } catch (error) {
       return;
     }
     return result;
@@ -101,6 +101,6 @@ exports.getExtended = function(image, position) {
  *		console.log(mbr)
  */
 
-exports.getMaster = getMaster = function(image) {
+exports.getMaster = function(image) {
   return exports.read(image, 0).then(exports.parse);
 };

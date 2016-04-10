@@ -1,4 +1,4 @@
-var MBR, Promise, bootRecord, getPartitions, partition, _;
+var MBR, Promise, _, bootRecord, getPartitions, partition;
 
 Promise = require('bluebird');
 
