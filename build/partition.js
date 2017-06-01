@@ -1,8 +1,4 @@
-var Promise, SECTOR_SIZE, bootRecord, fs;
-
-Promise = require('bluebird');
-
-fs = Promise.promisifyAll(require('fs'));
+var SECTOR_SIZE, bootRecord;
 
 bootRecord = require('./boot-record');
 

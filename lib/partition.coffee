@@ -1,5 +1,3 @@
-Promise = require('bluebird')
-fs = Promise.promisifyAll(require('fs'))
 bootRecord = require('./boot-record')
 
 SECTOR_SIZE = 512

@@ -1,6 +1,7 @@
 m = require('mochainon')
 Promise = require('bluebird')
 _ = require('lodash')
+filedisk = require('file-disk')
 fs = Promise.promisifyAll(require('fs'))
 tmp = require('tmp')
 mockFs = require('mock-fs')
@@ -17,23 +18,29 @@ describe 'Boot Record:', ->
 
 		describe 'given a mocked file', ->
 
-			beforeEach ->
-				@tmp = tmp.fileSync()
+			buffer = Buffer.allocUnsafe(1536)
+			buffer.fill(1, 0, 512)
+			buffer.fill(0, 512)
+			expected = buffer.slice(0, 512)
 
-			afterEach (done) ->
+			before ->
+				@tmp = tmp.fileSync()
+				fs.writeFileAsync(@tmp.name, buffer)
+
+			after (done) ->
 				fs.unlink(@tmp.name, done)
 
-			it 'should get the first 512 bytes from the file', (done) ->
-				buffer = new Buffer(512)
-				buffer.fill(1)
+			it 'should get the first 512 bytes from the file', ->
+				bootRecord.read(@tmp.name)
+				.then (data) ->
+					m.chai.expect(data).to.deep.equal(expected)
 
-				nullBuffer = new Buffer(1024)
-				nullBuffer.fill(0)
-
-				fs.writeFileAsync(@tmp.name, Buffer.concat([ buffer, nullBuffer ])).then =>
-					bootRecord.read(@tmp.name).then (data) ->
-						m.chai.expect(data).to.deep.equal(buffer)
-						done()
+			it 'should get the first 512 bytes from the file (filedisk)', ->
+				Promise.using filedisk.openFile(@tmp.name, 'r'), (fd) ->
+					disk = new filedisk.FileDisk(fd)
+					bootRecord.read(disk)
+					.then (data) ->
+						m.chai.expect(data).to.deep.equal(expected)
 
 	describe '.parse()', ->
 

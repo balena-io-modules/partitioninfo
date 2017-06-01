@@ -1,6 +1,8 @@
-var BOOT_RECORD_SIZE, MasterBootRecord, Promise, fs;
+var BOOT_RECORD_SIZE, MasterBootRecord, Promise, filedisk, fs, readFileDisk, readPath;
 
 Promise = require('bluebird');
+
+filedisk = require('file-disk');
 
 fs = Promise.promisifyAll(require('fs'));
 
@@ -16,7 +18,7 @@ BOOT_RECORD_SIZE = 512;
  *
  * @description It returns a 512 bytes buffer.
  *
- * @param {String} image - image path
+ * @param {String|filedisk.Disk} - image path or Disk instance
  * @param {Number=0} position - byte position
  * @returns Promise<Buffer>
  *
@@ -26,16 +28,31 @@ BOOT_RECORD_SIZE = 512;
  */
 
 exports.read = function(image, position) {
-  var result;
   if (position == null) {
     position = 0;
   }
+  if (image instanceof filedisk.Disk) {
+    return readFileDisk(image, position);
+  } else {
+    return readPath(image, position);
+  }
+};
+
+readPath = function(image, position) {
+  var result;
   result = new Buffer(BOOT_RECORD_SIZE);
   return fs.openAsync(image, 'r').then(function(fd) {
     return fs.readAsync(fd, result, 0, BOOT_RECORD_SIZE, position)["return"](fd);
   }).then(function(fd) {
     return fs.closeAsync(fd);
   })["return"](result);
+};
+
+readFileDisk = function(disk, position) {
+  var result;
+  disk = Promise.promisifyAll(disk);
+  result = new Buffer(BOOT_RECORD_SIZE);
+  return disk.readAsync(result, 0, BOOT_RECORD_SIZE, position)["return"](result);
 };
 
 
@@ -77,7 +94,7 @@ exports.parse = function(mbrBuffer) {
 
 exports.getExtended = function(image, position) {
   return exports.read(image, position).then(function(buffer) {
-    var error, result;
+    var result;
     try {
       result = exports.parse(buffer);
     } catch (error) {
