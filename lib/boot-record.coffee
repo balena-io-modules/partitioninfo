@@ -1,4 +1,5 @@
 Promise = require('bluebird')
+filedisk = require('file-disk')
 fs = Promise.promisifyAll(require('fs'))
 MasterBootRecord = require('mbr')
 
@@ -11,7 +12,7 @@ BOOT_RECORD_SIZE = 512
 #
 # @description It returns a 512 bytes buffer.
 #
-# @param {String} image - image path
+# @param {String|filedisk.Disk} - image path or Disk instance
 # @param {Number=0} position - byte position
 # @returns Promise<Buffer>
 #
@@ -20,6 +21,12 @@ BOOT_RECORD_SIZE = 512
 #		console.log(buffer)
 ###
 exports.read = (image, position = 0) ->
+	if image instanceof filedisk.Disk
+		return readFileDisk(image, position)
+	else
+		return readPath(image, position)
+
+readPath = (image, position) ->
 	result = new Buffer(BOOT_RECORD_SIZE)
 
 	fs.openAsync(image, 'r').then (fd) ->
@@ -27,6 +34,11 @@ exports.read = (image, position = 0) ->
 	.then (fd) ->
 		return fs.closeAsync(fd)
 	.return(result)
+
+readFileDisk = (disk, position) ->
+	disk = Promise.promisifyAll(disk)
+	result = new Buffer(BOOT_RECORD_SIZE)
+	return disk.readAsync(result, 0, BOOT_RECORD_SIZE, position).return(result)
 
 ###*
 # @summary Parse a boot record buffer
