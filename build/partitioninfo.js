@@ -41,7 +41,8 @@ exports.get = function(image, definition) {
   return partition.getPartitionFromDefinition(image, definition).then(function(parsedPartition) {
     return Promise.props({
       offset: parsedPartition.byteOffset(),
-      size: parsedPartition.byteSize()
+      size: parsedPartition.byteSize(),
+      type: parsedPartition.type
     });
   });
 };

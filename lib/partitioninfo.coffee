@@ -33,6 +33,7 @@ exports.get = (image, definition) ->
 		return Promise.props
 			offset: parsedPartition.byteOffset()
 			size: parsedPartition.byteSize()
+			type: parsedPartition.type
 
 ###*
 # @summary Read all partition tables from a disk image recursively.
