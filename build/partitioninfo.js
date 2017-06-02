@@ -21,7 +21,7 @@ bootRecord = require('./boot-record');
  * @public
  * @function
  *
- * @param {String} image - image path
+ * @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
  * @param {Object} definition - partition definition
  * @param {Number} definition.primary - primary partition
  * @param {Number} [definition.logical] - logical partition
@@ -35,6 +35,7 @@ bootRecord = require('./boot-record');
  * .then (information) ->
  * 	console.log(information.offset)
  * 	console.log(information.size)
+ * 	console.log(information.type)
  */
 
 exports.get = function(image, definition) {
@@ -53,7 +54,7 @@ exports.get = function(image, definition) {
  * @public
  * @function
  *
- * @param {String} image - image path
+ * @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
  * @param {Number} [offset=0] - where the first partition table will be read from, in bytes
  *
  * @returns {Promise<Array<Object>>} partitions information
