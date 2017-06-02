@@ -27,6 +27,7 @@ describe 'Partitioninfo:', ->
 				m.chai.expect(promise).to.eventually.become
 					offset: 4194304
 					size: 20971520
+					type: 12
 
 	describe '.getPartitions()', ->
 
