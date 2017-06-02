@@ -27,6 +27,7 @@ Documentation
     * [.getPartitions(image, [offset])](#module_partitioninfo.getPartitions) ⇒ <code>Promise.&lt;Array.&lt;Object&gt;&gt;</code>
 
 <a name="module_partitioninfo.get"></a>
+
 ### partitioninfo.get(image, definition) ⇒ <code>Promise.&lt;Object&gt;</code>
 **Kind**: static method of <code>[partitioninfo](#module_partitioninfo)</code>  
 **Summary**: Get information from a partition  
@@ -35,7 +36,7 @@ Documentation
 
 | Param | Type | Description |
 | --- | --- | --- |
-| image | <code>String</code> | image path |
+| image | <code>String</code> &#124; <code>filedisk.Disk</code> | image path or filedisk.Disk instance |
 | definition | <code>Object</code> | partition definition |
 | definition.primary | <code>Number</code> | primary partition |
 | [definition.logical] | <code>Number</code> | logical partition |
@@ -48,8 +49,10 @@ partitioninfo.get 'foo/bar.img',
 .then (information) ->
 	console.log(information.offset)
 	console.log(information.size)
+	console.log(information.type)
 ```
 <a name="module_partitioninfo.getPartitions"></a>
+
 ### partitioninfo.getPartitions(image, [offset]) ⇒ <code>Promise.&lt;Array.&lt;Object&gt;&gt;</code>
 **Kind**: static method of <code>[partitioninfo](#module_partitioninfo)</code>  
 **Summary**: Read all partition tables from a disk image recursively.  
@@ -58,7 +61,7 @@ partitioninfo.get 'foo/bar.img',
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| image | <code>String</code> |  | image path |
+| image | <code>String</code> &#124; <code>filedisk.Disk</code> |  | image path or filedisk.Disk instance |
 | [offset] | <code>Number</code> | <code>0</code> | where the first partition table will be read from, in bytes |
 
 **Example**  
