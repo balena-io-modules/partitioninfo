@@ -65,6 +65,7 @@ exports.get = function(image, definition) {
  * 	for partition in information
  * 		console.log(partition.offset)
  * 		console.log(partition.size)
+ * 		console.log(partition.type)
  */
 
 exports.getPartitions = getPartitions = function(image, offset) {

@@ -52,6 +52,7 @@ exports.get = (image, definition) ->
 # 	for partition in information
 # 		console.log(partition.offset)
 # 		console.log(partition.size)
+# 		console.log(partition.type)
 ###
 exports.getPartitions = getPartitions = (image, offset = 0) ->
 	Promise.try ->
