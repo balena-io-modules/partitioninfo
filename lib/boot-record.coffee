@@ -27,13 +27,8 @@ exports.read = (image, position = 0) ->
 		return readPath(image, position)
 
 readPath = (image, position) ->
-	result = new Buffer(BOOT_RECORD_SIZE)
-
-	fs.openAsync(image, 'r').then (fd) ->
-		return fs.readAsync(fd, result, 0, BOOT_RECORD_SIZE, position).return(fd)
-	.then (fd) ->
-		return fs.closeAsync(fd)
-	.return(result)
+	Promise.using filedisk.openFile(image, 'r'), (fd) ->
+		readFileDisk(new filedisk.FileDisk(fd), position)
 
 readFileDisk = (disk, position) ->
 	disk = Promise.promisifyAll(disk)

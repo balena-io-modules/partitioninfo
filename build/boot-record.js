@@ -39,13 +39,9 @@ exports.read = function(image, position) {
 };
 
 readPath = function(image, position) {
-  var result;
-  result = new Buffer(BOOT_RECORD_SIZE);
-  return fs.openAsync(image, 'r').then(function(fd) {
-    return fs.readAsync(fd, result, 0, BOOT_RECORD_SIZE, position)["return"](fd);
-  }).then(function(fd) {
-    return fs.closeAsync(fd);
-  })["return"](result);
+  return Promise.using(filedisk.openFile(image, 'r'), function(fd) {
+    return readFileDisk(new filedisk.FileDisk(fd), position);
+  });
 };
 
 readFileDisk = function(disk, position) {
