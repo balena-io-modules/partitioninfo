@@ -71,6 +71,7 @@ partitioninfo.getPartitions('foo/bar.img')
 	for partition in information
 		console.log(partition.offset)
 		console.log(partition.size)
+		console.log(partition.type)
 ```
 
 Support
