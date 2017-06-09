@@ -1,85 +1,79 @@
 m = require('mochainon')
-Promise = require('bluebird')
-fs = require('fs')
 
 partitioninfo = require('../lib/partitioninfo')
-partition = require('../lib/partition')
-bootRecord = require('../lib/boot-record')
 
-rpiMBR = fs.readFileSync('./tests/mbr/rpi.data')
-bbbMBR = fs.readFileSync('./tests/mbr/bbb.data')
+DISK_PATH = './tests/mbr/disk.img'
 
 describe 'Partitioninfo:', ->
-
 	describe '.get()', ->
+		it 'should return an information object', ->
+			promise = partitioninfo.get('./tests/mbr/rpi.data', primary: 1)
+			m.chai.expect(promise).to.eventually.become
+				offset: 4194304
+				size: 20971520
+				type: 12
 
-		describe 'given a valid partition', ->
+		it 'should be able to get the second logical partition of the extended one', ->
+			promise = partitioninfo.get(DISK_PATH, primary: 4, logical: 2)
+			m.chai.expect(promise).to.eventually.become
+				offset: 3149824
+				size: 1024
+				type: 131
 
-			beforeEach ->
-				@bootRecordReadStub = m.sinon.stub(bootRecord, 'read')
-				@bootRecordReadStub.returns(Promise.resolve(rpiMBR))
+		it 'should return an error when asked for a non existing primary partition', ->
+			promise = partitioninfo.get(DISK_PATH, primary: 5)
+			m.chai.expect(promise).to.be.rejectedWith('Partition not found: 5.')
 
-			afterEach ->
-				@bootRecordReadStub.restore()
+		it 'should return an error when asked for a logical partition in a non extended one', ->
+			promise = partitioninfo.get(DISK_PATH, primary: 1, logical: 2)
+			m.chai.expect(promise).to.be.rejectedWith('Not an extended partition: 1.')
 
-			it 'should return an information object', ->
-				promise = partitioninfo.get('mbr/rpi', primary: 1)
-				m.chai.expect(promise).to.eventually.become
-					offset: 4194304
-					size: 20971520
-					type: 12
+		it 'should return an error when asked for a logical partition that does not exist', ->
+			promise = partitioninfo.get(DISK_PATH, { primary: 4, logical: 5 })
+			m.chai.expect(promise).to.be.rejectedWith('Partition not found: 5.')
 
 	describe '.getPartitions()', ->
-
-		describe 'given a valid image file', ->
-
-			beforeEach ->
-				# Stub bootRecord read method, returning rpi MBR when asked on the first byte
-				# but BBB MBR when asked to get the partition table at the offset of the extended partition.
-				# We return different partition table there to avoid an infinite loop on getPartitions method.
-				@bootRecordReadStub = m.sinon.stub(bootRecord, 'read')
-				@bootRecordReadStub.withArgs('mbr/rpi', 0).returns(Promise.resolve(rpiMBR))
-				@bootRecordReadStub.withArgs('mbr/rpi', 394264576).returns(Promise.resolve(bbbMBR))
-
-			afterEach ->
-				@bootRecordReadStub.restore()
-
-			it 'should return an information object', ->
-				promise = partitioninfo.getPartitions('mbr/rpi')
-				m.chai.expect(promise).to.eventually.become([
-					{
-						offset: 4194304
-						size: 20971520
-						type: 12
-					}
-					{
-						offset: 25165824
-						size: 184549376
-						type: 131
-					}
-					{
-						offset: 209715200
-						size: 184549376
-						type: 131
-					}
-					{
-						offset: 394264576
-						size: 1086324736
-						type: 15
-					}
-					{
-						offset: 398458880
-						size: 12582912
-						type: 14
-					}
-					{
-						offset: 411041792
-						size: 423624704
-						type: 131
-					}
-					{
-						offset: 834666496
-						size: 4194304
-						type: 131
-					}
-				])
+		it 'should list all partitions of a disk image', ->
+			promise = partitioninfo.getPartitions(DISK_PATH)
+			m.chai.expect(promise).to.eventually.become([
+				{
+					offset: 1048576
+					size: 1024
+					type: 131
+				}
+				{
+					offset: 1049600
+					size: 1024
+					type: 131
+				}
+				{
+					offset: 1050624
+					size: 1024
+					type: 131
+				}
+				{
+					offset: 1051648
+					size: 4198400
+					type: 5
+				}
+				{
+					offset: 2100224
+					size: 1024
+					type: 131
+				}
+				{
+					offset: 3149824
+					size: 1024
+					type: 131
+				}
+				{
+					offset: 4199424
+					size: 1024
+					type: 131
+				}
+				{
+					offset: 5249024
+					size: 1024
+					type: 131
+				}
+			])
