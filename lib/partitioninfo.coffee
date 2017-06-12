@@ -1,12 +1,88 @@
-Promise = require('bluebird')
 _ = require('lodash')
+filedisk = require('file-disk')
 MBR = require('mbr')
-partition = require('./partition')
-bootRecord = require('./boot-record')
+Promise = require('bluebird')
 
 ###*
 # @module partitioninfo
 ###
+
+BOOT_RECORD_SIZE = 512
+
+partitionDict = (p, offset) ->
+	{
+		offset: offset + p.byteOffset()
+		size: p.byteSize()
+		type: p.type
+	}
+
+getPartitionsFromMBRBuf = (buf) ->
+	(new MBR(buf)).partitions.filter(_.property('type'))
+
+readMbr = (disk, offset) ->
+	buf = Buffer.allocUnsafe(BOOT_RECORD_SIZE)
+	disk.readAsync(buf, 0, BOOT_RECORD_SIZE, offset).return(buf)
+
+getLogicalPartitions = (disk, offset, extendedPartitionOffset = offset, limit = Infinity) ->
+	result = []
+	readMbr(disk, offset)
+	.then (buf) ->
+		for p in getPartitionsFromMBRBuf(buf)
+			if not MBR.Partition.isExtended(p.type)
+				result.push(partitionDict(p, offset))
+			else if limit > 0
+				logicalPartitionsPromise = getLogicalPartitions(
+					disk
+					extendedPartitionOffset + p.byteOffset()
+					extendedPartitionOffset
+					limit - 1
+				)
+				return logicalPartitionsPromise
+				.then (logicalPartitions) ->
+					result.push(logicalPartitions...)
+					result
+		result
+
+getPartitions = (disk, offset, getLogical = true) ->
+	disk = Promise.promisifyAll(disk)
+	result = []
+	readMbr(disk, offset)
+	.then (buf) ->
+		for p in getPartitionsFromMBRBuf(buf)
+			result.push(partitionDict(p, offset))
+			if MBR.Partition.isExtended(p.type) and getLogical
+				return getLogicalPartitions(disk, p.byteOffset())
+				.then (logicalPartitions) ->
+					result.push(logicalPartitions...)
+					result
+		result
+
+getPartitionFromList = (partitions, number) ->
+	partition = partitions[number - 1]
+	if not partition
+		throw new Error("Partition not found: #{number}.")
+	partition
+
+get = (disk, definition) ->
+	getPartitions(disk, 0, false)
+	.then (partitions) ->
+		primary = getPartitionFromList(partitions, definition.primary)
+		if not definition.logical
+			primary
+		else if not MBR.Partition.isExtended(primary.type)
+			throw new Error("Not an extended partition: #{definition.primary}.")
+		else
+			getLogicalPartitions(disk, primary.offset, primary.offset, definition.logical - 1)
+			.then (logicalPartitions) ->
+				getPartitionFromList(logicalPartitions, definition.logical)
+
+callWithDisk = (fn, pathOrDisk, args...) ->
+	if pathOrDisk instanceof filedisk.Disk
+		fn(pathOrDisk, args...)
+	else
+		Promise.using filedisk.openFile(pathOrDisk, 'r'), (fd) ->
+			disk = new filedisk.FileDisk(fd)
+			fn(disk, args...)
 
 ###*
 # @summary Get information from a partition
@@ -29,12 +105,8 @@ bootRecord = require('./boot-record')
 # 	console.log(information.size)
 # 	console.log(information.type)
 ###
-exports.get = (image, definition) ->
-	partition.getPartitionFromDefinition(image, definition).then (parsedPartition) ->
-		return Promise.props
-			offset: parsedPartition.byteOffset()
-			size: parsedPartition.byteSize()
-			type: parsedPartition.type
+exports.get = (disk, definition) ->
+	callWithDisk(get, disk, definition)
 
 ###*
 # @summary Read all partition tables from a disk image recursively.
@@ -54,22 +126,5 @@ exports.get = (image, definition) ->
 # 		console.log(partition.size)
 # 		console.log(partition.type)
 ###
-exports.getPartitions = getPartitions = (image, offset = 0) ->
-	Promise.try ->
-		if offset is 0
-			bootRecord.getMaster(image)
-		else
-			bootRecord.getExtended(image, offset)
-	.get('partitions')
-	.filter(_.property('type')) # mbr module returns type=0 partitions if there isnt one
-	.map (partition) ->
-		partition =
-			offset: offset + partition.byteOffset()
-			size: partition.byteSize()
-			type: partition.type
-		if not MBR.Partition.isExtended(partition.type)
-			return [ partition ]
-		getPartitions(image, partition.offset)
-		.then (ps) ->
-			[ partition ].concat(ps)
-	.then(_.flatten)
+exports.getPartitions = (disk, offset = 0) ->
+	callWithDisk(getPartitions, disk, offset)
