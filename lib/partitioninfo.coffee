@@ -57,24 +57,30 @@ getPartitions = (disk, offset, getLogical = true) ->
 					result
 		result
 
-getPartitionFromList = (partitions, number) ->
-	partition = partitions[number - 1]
-	if not partition
-		throw new Error("Partition not found: #{number}.")
-	partition
+partitionNotFoundError = (number) ->
+	throw new Error("Partition not found: #{number}.")
 
-get = (disk, definition) ->
+get = (disk, number) ->
+	if number < 1
+		throw new Error('The partition number must be at least 1.')
 	getPartitions(disk, 0, false)
 	.then (partitions) ->
-		primary = getPartitionFromList(partitions, definition.primary)
-		if not definition.logical
-			primary
-		else if not MBR.Partition.isExtended(primary.type)
-			throw new Error("Not an extended partition: #{definition.primary}.")
+		position = number - 1
+		if partitions.length == 0
+			partitionNotFoundError(number)
+		else if position < partitions.length
+			partitions[position]
 		else
-			getLogicalPartitions(disk, primary.offset, primary.offset, definition.logical - 1)
+			[..., last] = partitions
+			if not MBR.Partition.isExtended(last.type)
+				partitionNotFoundError(number)
+			logicalPartitionPosition = position - partitions.length
+			getLogicalPartitions(disk, last.offset, last.offset, logicalPartitionPosition)
 			.then (logicalPartitions) ->
-				getPartitionFromList(logicalPartitions, definition.logical)
+				logical = logicalPartitions[logicalPartitionPosition]
+				if not logical
+					partitionNotFoundError(number)
+				logical
 
 callWithDisk = (fn, pathOrDisk, args...) ->
 	if pathOrDisk instanceof filedisk.Disk
@@ -90,9 +96,7 @@ callWithDisk = (fn, pathOrDisk, args...) ->
 # @function
 #
 # @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
-# @param {Object} definition - partition definition
-# @param {Number} definition.primary - primary partition
-# @param {Number} [definition.logical] - logical partition
+# @param {Object} number - partition number
 #
 # @returns {Promise<Object>} partition information
 #
@@ -105,8 +109,8 @@ callWithDisk = (fn, pathOrDisk, args...) ->
 # 	console.log(information.size)
 # 	console.log(information.type)
 ###
-exports.get = (disk, definition) ->
-	callWithDisk(get, disk, definition)
+exports.get = (disk, number) ->
+	callWithDisk(get, disk, number)
 
 ###*
 # @summary Read all partition tables from a disk image recursively.

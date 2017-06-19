@@ -1,4 +1,4 @@
-var BOOT_RECORD_SIZE, MBR, Promise, _, callWithDisk, filedisk, get, getLogicalPartitions, getPartitionFromList, getPartitions, getPartitionsFromMBRBuf, partitionDict, readMbr,
+var BOOT_RECORD_SIZE, MBR, Promise, _, callWithDisk, filedisk, get, getLogicalPartitions, getPartitions, getPartitionsFromMBRBuf, partitionDict, partitionNotFoundError, readMbr,
   slice = [].slice;
 
 _ = require('lodash');
@@ -86,26 +86,34 @@ getPartitions = function(disk, offset, getLogical) {
   });
 };
 
-getPartitionFromList = function(partitions, number) {
-  var partition;
-  partition = partitions[number - 1];
-  if (!partition) {
-    throw new Error("Partition not found: " + number + ".");
-  }
-  return partition;
+partitionNotFoundError = function(number) {
+  throw new Error("Partition not found: " + number + ".");
 };
 
-get = function(disk, definition) {
+get = function(disk, number) {
+  if (number < 1) {
+    throw new Error('The partition number must be at least 1.');
+  }
   return getPartitions(disk, 0, false).then(function(partitions) {
-    var primary;
-    primary = getPartitionFromList(partitions, definition.primary);
-    if (!definition.logical) {
-      return primary;
-    } else if (!MBR.Partition.isExtended(primary.type)) {
-      throw new Error("Not an extended partition: " + definition.primary + ".");
+    var last, logicalPartitionPosition, position;
+    position = number - 1;
+    if (partitions.length === 0) {
+      return partitionNotFoundError(number);
+    } else if (position < partitions.length) {
+      return partitions[position];
     } else {
-      return getLogicalPartitions(disk, primary.offset, primary.offset, definition.logical - 1).then(function(logicalPartitions) {
-        return getPartitionFromList(logicalPartitions, definition.logical);
+      last = partitions[partitions.length - 1];
+      if (!MBR.Partition.isExtended(last.type)) {
+        partitionNotFoundError(number);
+      }
+      logicalPartitionPosition = position - partitions.length;
+      return getLogicalPartitions(disk, last.offset, last.offset, logicalPartitionPosition).then(function(logicalPartitions) {
+        var logical;
+        logical = logicalPartitions[logicalPartitionPosition];
+        if (!logical) {
+          partitionNotFoundError(number);
+        }
+        return logical;
       });
     }
   });
@@ -132,9 +140,7 @@ callWithDisk = function() {
  * @function
  *
  * @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
- * @param {Object} definition - partition definition
- * @param {Number} definition.primary - primary partition
- * @param {Number} [definition.logical] - logical partition
+ * @param {Object} number - partition number
  *
  * @returns {Promise<Object>} partition information
  *
@@ -148,8 +154,8 @@ callWithDisk = function() {
  * 	console.log(information.type)
  */
 
-exports.get = function(disk, definition) {
-  return callWithDisk(get, disk, definition);
+exports.get = function(disk, number) {
+  return callWithDisk(get, disk, number);
 };
 
 

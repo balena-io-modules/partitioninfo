@@ -23,12 +23,12 @@ Documentation
 
 
 * [partitioninfo](#module_partitioninfo)
-    * [.get(image, definition)](#module_partitioninfo.get) ⇒ <code>Promise.&lt;Object&gt;</code>
+    * [.get(image, number)](#module_partitioninfo.get) ⇒ <code>Promise.&lt;Object&gt;</code>
     * [.getPartitions(image, [offset])](#module_partitioninfo.getPartitions) ⇒ <code>Promise.&lt;Array.&lt;Object&gt;&gt;</code>
 
 <a name="module_partitioninfo.get"></a>
 
-### partitioninfo.get(image, definition) ⇒ <code>Promise.&lt;Object&gt;</code>
+### partitioninfo.get(image, number) ⇒ <code>Promise.&lt;Object&gt;</code>
 **Kind**: static method of <code>[partitioninfo](#module_partitioninfo)</code>  
 **Summary**: Get information from a partition  
 **Returns**: <code>Promise.&lt;Object&gt;</code> - partition information  
@@ -37,9 +37,7 @@ Documentation
 | Param | Type | Description |
 | --- | --- | --- |
 | image | <code>String</code> &#124; <code>filedisk.Disk</code> | image path or filedisk.Disk instance |
-| definition | <code>Object</code> | partition definition |
-| definition.primary | <code>Number</code> | primary partition |
-| [definition.logical] | <code>Number</code> | logical partition |
+| number | <code>Object</code> | partition number |
 
 **Example**  
 ```js
