@@ -3,6 +3,18 @@
 	All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.0.1] - 2017-06-23
+
+### Changed
+
+- Updated file-disk to ^1.0.1
+
+## [2.0.0] - 2017-06-19
+
+### Changed
+
+- Use the partition number instead of {primary: X, logical: Y}, like Linux's /dev/sdaX
+
 ## [1.3.0] - 2017-06-09
 
 ### Changed
@@ -40,6 +52,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 - Add `lodash` to the dependencies list.
 
+[2.0.1]: https://github.com/resin-io-modules/partitioninfo/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/resin-io-modules/partitioninfo/compare/v1.3.0...v2.0.0
+[1.3.0]: https://github.com/resin-io-modules/partitioninfo/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/resin-io-modules/partitioninfo/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/resin-io-modules/partitioninfo/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/resin-io-modules/partitioninfo/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/resin-io-modules/partitioninfo/compare/v1.0.1...v1.0.2
