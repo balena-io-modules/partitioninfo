@@ -25,6 +25,8 @@ readMbr = (disk, offset) ->
 
 getLogicalPartitions = (disk, offset, extendedPartitionOffset = offset, limit = Infinity) ->
 	result = []
+	if limit <= 0
+		return Promise.resolve(result)
 	readMbr(disk, offset)
 	.then (buf) ->
 		for p in getPartitionsFromMBRBuf(buf)
@@ -43,18 +45,25 @@ getLogicalPartitions = (disk, offset, extendedPartitionOffset = offset, limit = 
 					result
 		result
 
-getPartitions = (disk, offset, getLogical = true) ->
+getPartitions = (disk, options) ->
+	options = _.defaults(options, getLogical: true)
 	disk = Promise.promisifyAll(disk)
 	result = []
-	readMbr(disk, offset)
+	extended = null
+	readMbr(disk, options.offset)
 	.then (buf) ->
 		for p in getPartitionsFromMBRBuf(buf)
-			result.push(partitionDict(p, offset))
-			if MBR.Partition.isExtended(p.type) and getLogical
-				return getLogicalPartitions(disk, p.byteOffset())
-				.then (logicalPartitions) ->
-					result.push(logicalPartitions...)
-					result
+			if MBR.Partition.isExtended(p.type)
+				extended = p
+				if options.includeExtended
+					result.push(partitionDict(p, options.offset))
+			else
+				result.push(partitionDict(p, options.offset))
+		if extended != null and options.getLogical
+			return getLogicalPartitions(disk, extended.byteOffset())
+			.then (logicalPartitions) ->
+				result.push(logicalPartitions...)
+				result
 		result
 
 partitionNotFoundError = (number) ->
@@ -63,24 +72,25 @@ partitionNotFoundError = (number) ->
 get = (disk, number) ->
 	if number < 1
 		throw new Error('The partition number must be at least 1.')
-	getPartitions(disk, 0, false)
+	getPartitions(disk, includeExtended: true, offset: 0, getLogical: false)
 	.then (partitions) ->
-		position = number - 1
-		if partitions.length == 0
-			partitionNotFoundError(number)
-		else if position < partitions.length
-			partitions[position]
-		else
-			[..., last] = partitions
-			if not MBR.Partition.isExtended(last.type)
+		if number <= 4
+			if number <= partitions.length
+				partitions[number - 1]
+			else
 				partitionNotFoundError(number)
-			logicalPartitionPosition = position - partitions.length
-			getLogicalPartitions(disk, last.offset, last.offset, logicalPartitionPosition)
-			.then (logicalPartitions) ->
-				logical = logicalPartitions[logicalPartitionPosition]
-				if not logical
-					partitionNotFoundError(number)
-				logical
+		else
+			extended = _.find(partitions, (p) -> p.type == 5)
+			if not extended
+				partitionNotFoundError(number)
+			else
+				logicalPartitionPosition = number - 5
+				getLogicalPartitions(disk, extended.offset, extended.offset, logicalPartitionPosition + 1)
+				.then (logicalPartitions) ->
+					if logicalPartitionPosition < logicalPartitions.length
+						logicalPartitions[logicalPartitionPosition]
+					else
+						partitionNotFoundError(number)
 
 callWithDisk = (fn, pathOrDisk, args...) ->
 	if pathOrDisk instanceof filedisk.Disk
@@ -109,6 +119,7 @@ callWithDisk = (fn, pathOrDisk, args...) ->
 # 	console.log(information.size)
 # 	console.log(information.type)
 ###
+
 exports.get = (disk, number) ->
 	callWithDisk(get, disk, number)
 
@@ -117,8 +128,26 @@ exports.get = (disk, number) ->
 # @public
 # @function
 #
+# @description `getPartitions()` returns an Array.
+# `getPartitions(image)[N - 1]` may not be equal to `get(image, N)`
+# For example on a disk with no primary partitions and one extended partition
+# containing a logical one, `getPartitions(image)` would return an array of 2 partitions
+# (the extended then the logical one), `get(image, 1)` would return the extended
+# partition and `get(image, 5)` would return the logical partition. All other
+# numbers would throw an error.
+# Partition numbers for `get(image, N)` are like Linux's `/dev/sdaN`.
+#
+# The array returned by `getPartitions()` contains primary (or extended) partitions
+# first then the logical ones. This is true even if the extended partition is not the
+# last one of the disk image. Order will always be 1, [2, 3, 4, 5, 6, 7] even if
+# the logical partitions 5, 6 and 7 are physically contained in partiton 1, 2 or 3.
+#
 # @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
-# @param {Number} [offset=0] - where the first partition table will be read from, in bytes
+# @param {Object} options
+# @param {Number} [options.offset=0] - where the first partition table will be read from, in bytes
+# @param {Number} [options.includeExtended=true] - whether to include extended partitions or not
+#
+# @throws {Error} if there is no such partition
 #
 # @returns {Promise<Array<Object>>} partitions information
 #
@@ -130,5 +159,6 @@ exports.get = (disk, number) ->
 # 		console.log(partition.size)
 # 		console.log(partition.type)
 ###
-exports.getPartitions = (disk, offset = 0) ->
-	callWithDisk(getPartitions, disk, offset)
+exports.getPartitions = (disk, options) ->
+	options = _.defaults(options, includeExtended: true, offset: 0)
+	callWithDisk(getPartitions, disk, options)
