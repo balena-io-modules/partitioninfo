@@ -43,6 +43,9 @@ getLogicalPartitions = function(disk, offset, extendedPartitionOffset, limit) {
     limit = 2e308;
   }
   result = [];
+  if (limit <= 0) {
+    return Promise.resolve(result);
+  }
   return readMbr(disk, offset).then(function(buf) {
     var i, len, logicalPartitionsPromise, p, ref;
     ref = getPartitionsFromMBRBuf(buf);
@@ -62,25 +65,33 @@ getLogicalPartitions = function(disk, offset, extendedPartitionOffset, limit) {
   });
 };
 
-getPartitions = function(disk, offset, getLogical) {
-  var result;
-  if (getLogical == null) {
-    getLogical = true;
-  }
+getPartitions = function(disk, options) {
+  var extended, result;
+  options = _.defaults(options, {
+    getLogical: true
+  });
   disk = Promise.promisifyAll(disk);
   result = [];
-  return readMbr(disk, offset).then(function(buf) {
+  extended = null;
+  return readMbr(disk, options.offset).then(function(buf) {
     var i, len, p, ref;
     ref = getPartitionsFromMBRBuf(buf);
     for (i = 0, len = ref.length; i < len; i++) {
       p = ref[i];
-      result.push(partitionDict(p, offset));
-      if (MBR.Partition.isExtended(p.type) && getLogical) {
-        return getLogicalPartitions(disk, p.byteOffset()).then(function(logicalPartitions) {
-          result.push.apply(result, logicalPartitions);
-          return result;
-        });
+      if (MBR.Partition.isExtended(p.type)) {
+        extended = p;
+        if (options.includeExtended) {
+          result.push(partitionDict(p, options.offset));
+        }
+      } else {
+        result.push(partitionDict(p, options.offset));
       }
+    }
+    if (extended !== null && options.getLogical) {
+      return getLogicalPartitions(disk, extended.byteOffset()).then(function(logicalPartitions) {
+        result.push.apply(result, logicalPartitions);
+        return result;
+      });
     }
     return result;
   });
@@ -94,27 +105,34 @@ get = function(disk, number) {
   if (number < 1) {
     throw new Error('The partition number must be at least 1.');
   }
-  return getPartitions(disk, 0, false).then(function(partitions) {
-    var last, logicalPartitionPosition, position;
-    position = number - 1;
-    if (partitions.length === 0) {
-      return partitionNotFoundError(number);
-    } else if (position < partitions.length) {
-      return partitions[position];
-    } else {
-      last = partitions[partitions.length - 1];
-      if (!MBR.Partition.isExtended(last.type)) {
-        partitionNotFoundError(number);
+  return getPartitions(disk, {
+    includeExtended: true,
+    offset: 0,
+    getLogical: false
+  }).then(function(partitions) {
+    var extended, logicalPartitionPosition;
+    if (number <= 4) {
+      if (number <= partitions.length) {
+        return partitions[number - 1];
+      } else {
+        return partitionNotFoundError(number);
       }
-      logicalPartitionPosition = position - partitions.length;
-      return getLogicalPartitions(disk, last.offset, last.offset, logicalPartitionPosition).then(function(logicalPartitions) {
-        var logical;
-        logical = logicalPartitions[logicalPartitionPosition];
-        if (!logical) {
-          partitionNotFoundError(number);
-        }
-        return logical;
+    } else {
+      extended = _.find(partitions, function(p) {
+        return p.type === 5;
       });
+      if (!extended) {
+        return partitionNotFoundError(number);
+      } else {
+        logicalPartitionPosition = number - 5;
+        return getLogicalPartitions(disk, extended.offset, extended.offset, logicalPartitionPosition + 1).then(function(logicalPartitions) {
+          if (logicalPartitionPosition < logicalPartitions.length) {
+            return logicalPartitions[logicalPartitionPosition];
+          } else {
+            return partitionNotFoundError(number);
+          }
+        });
+      }
     }
   });
 };
@@ -164,8 +182,26 @@ exports.get = function(disk, number) {
  * @public
  * @function
  *
+ * @description `getPartitions()` returns an Array.
+ * `getPartitions(image)[N - 1]` may not be equal to `get(image, N)`
+ * For example on a disk with no primary partitions and one extended partition
+ * containing a logical one, `getPartitions(image)` would return an array of 2 partitions
+ * (the extended then the logical one), `get(image, 1)` would return the extended
+ * partition and `get(image, 5)` would return the logical partition. All other
+ * numbers would throw an error.
+ * Partition numbers for `get(image, N)` are like Linux's `/dev/sdaN`.
+ *
+ * The array returned by `getPartitions()` contains primary (or extended) partitions
+ * first then the logical ones. This is true even if the extended partition is not the
+ * last one of the disk image. Order will always be 1, [2, 3, 4, 5, 6, 7] even if
+ * the logical partitions 5, 6 and 7 are physically contained in partiton 1, 2 or 3.
+ *
  * @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
- * @param {Number} [offset=0] - where the first partition table will be read from, in bytes
+ * @param {Object} options
+ * @param {Number} [options.offset=0] - where the first partition table will be read from, in bytes
+ * @param {Number} [options.includeExtended=true] - whether to include extended partitions or not
+ *
+ * @throws {Error} if there is no such partition
  *
  * @returns {Promise<Array<Object>>} partitions information
  *
@@ -178,9 +214,10 @@ exports.get = function(disk, number) {
  * 		console.log(partition.type)
  */
 
-exports.getPartitions = function(disk, offset) {
-  if (offset == null) {
-    offset = 0;
-  }
-  return callWithDisk(getPartitions, disk, offset);
+exports.getPartitions = function(disk, options) {
+  options = _.defaults(options, {
+    includeExtended: true,
+    offset: 0
+  });
+  return callWithDisk(getPartitions, disk, options);
 };
