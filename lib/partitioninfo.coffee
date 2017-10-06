@@ -9,11 +9,12 @@ Promise = require('bluebird')
 
 BOOT_RECORD_SIZE = 512
 
-partitionDict = (p, offset) ->
+partitionDict = (p, offset, index) ->
 	{
 		offset: offset + p.byteOffset()
 		size: p.byteSize()
 		type: p.type
+		index
 	}
 
 getPartitionsFromMBRBuf = (buf) ->
@@ -23,7 +24,7 @@ readMbr = (disk, offset) ->
 	buf = Buffer.allocUnsafe(BOOT_RECORD_SIZE)
 	disk.readAsync(buf, 0, BOOT_RECORD_SIZE, offset).return(buf)
 
-getLogicalPartitions = (disk, offset, extendedPartitionOffset = offset, limit = Infinity) ->
+getLogicalPartitions = (disk, index, offset, extendedPartitionOffset = offset, limit = Infinity) ->
 	result = []
 	if limit <= 0
 		return Promise.resolve(result)
@@ -31,10 +32,11 @@ getLogicalPartitions = (disk, offset, extendedPartitionOffset = offset, limit = 
 	.then (buf) ->
 		for p in getPartitionsFromMBRBuf(buf)
 			if not MBR.Partition.isExtended(p.type)
-				result.push(partitionDict(p, offset))
+				result.push(partitionDict(p, offset, index))
 			else if limit > 0
 				logicalPartitionsPromise = getLogicalPartitions(
 					disk
+					index + 1
 					extendedPartitionOffset + p.byteOffset()
 					extendedPartitionOffset
 					limit - 1
@@ -52,15 +54,15 @@ getPartitions = (disk, options) ->
 	extended = null
 	readMbr(disk, options.offset)
 	.then (buf) ->
-		for p in getPartitionsFromMBRBuf(buf)
+		for p, index in getPartitionsFromMBRBuf(buf)
 			if MBR.Partition.isExtended(p.type)
 				extended = p
 				if options.includeExtended
-					result.push(partitionDict(p, options.offset))
+					result.push(partitionDict(p, options.offset, index + 1))
 			else
-				result.push(partitionDict(p, options.offset))
+				result.push(partitionDict(p, options.offset, index + 1))
 		if extended != null and options.getLogical
-			return getLogicalPartitions(disk, extended.byteOffset())
+			return getLogicalPartitions(disk, 5, extended.byteOffset())
 			.then (logicalPartitions) ->
 				result.push(logicalPartitions...)
 				result
@@ -85,7 +87,7 @@ get = (disk, number) ->
 				partitionNotFoundError(number)
 			else
 				logicalPartitionPosition = number - 5
-				getLogicalPartitions(disk, extended.offset, extended.offset, logicalPartitionPosition + 1)
+				getLogicalPartitions(disk, 5, extended.offset, extended.offset, logicalPartitionPosition + 1)
 				.then (logicalPartitions) ->
 					if logicalPartitionPosition < logicalPartitions.length
 						logicalPartitions[logicalPartitionPosition]
@@ -93,12 +95,12 @@ get = (disk, number) ->
 						partitionNotFoundError(number)
 
 callWithDisk = (fn, pathOrDisk, args...) ->
-	if pathOrDisk instanceof filedisk.Disk
-		fn(pathOrDisk, args...)
-	else
+	if _.isString(pathOrDisk)
 		Promise.using filedisk.openFile(pathOrDisk, 'r'), (fd) ->
 			disk = new filedisk.FileDisk(fd)
 			fn(disk, args...)
+	else
+		fn(pathOrDisk, args...)
 
 ###*
 # @summary Get information from a partition
