@@ -8,12 +8,16 @@ Promise = require('bluebird')
 ###
 
 BOOT_RECORD_SIZE = 512
+MBR_LAST_PRIMARY_PARTITION = 4
+MBR_FIRST_LOGICAL_PARTITION = 5
+MBR_EXTENDED_PARTITION_TYPE = 5
 
-partitionDict = (p, offset) ->
+partitionDict = (p, offset, index) ->
 	{
 		offset: offset + p.byteOffset()
 		size: p.byteSize()
 		type: p.type
+		index
 	}
 
 getPartitionsFromMBRBuf = (buf) ->
@@ -21,9 +25,10 @@ getPartitionsFromMBRBuf = (buf) ->
 
 readMbr = (disk, offset) ->
 	buf = Buffer.allocUnsafe(BOOT_RECORD_SIZE)
-	disk.readAsync(buf, 0, BOOT_RECORD_SIZE, offset).return(buf)
+	disk.readAsync(buf, 0, BOOT_RECORD_SIZE, offset)
+	.return(buf)
 
-getLogicalPartitions = (disk, offset, extendedPartitionOffset = offset, limit = Infinity) ->
+getLogicalPartitions = (disk, index, offset, extendedPartitionOffset = offset, limit = Infinity) ->
 	result = []
 	if limit <= 0
 		return Promise.resolve(result)
@@ -31,10 +36,11 @@ getLogicalPartitions = (disk, offset, extendedPartitionOffset = offset, limit = 
 	.then (buf) ->
 		for p in getPartitionsFromMBRBuf(buf)
 			if not MBR.Partition.isExtended(p.type)
-				result.push(partitionDict(p, offset))
+				result.push(partitionDict(p, offset, index))
 			else if limit > 0
 				logicalPartitionsPromise = getLogicalPartitions(
 					disk
+					index + 1
 					extendedPartitionOffset + p.byteOffset()
 					extendedPartitionOffset
 					limit - 1
@@ -52,15 +58,15 @@ getPartitions = (disk, options) ->
 	extended = null
 	readMbr(disk, options.offset)
 	.then (buf) ->
-		for p in getPartitionsFromMBRBuf(buf)
+		for p, index in getPartitionsFromMBRBuf(buf)
 			if MBR.Partition.isExtended(p.type)
 				extended = p
 				if options.includeExtended
-					result.push(partitionDict(p, options.offset))
+					result.push(partitionDict(p, options.offset, index + 1))
 			else
-				result.push(partitionDict(p, options.offset))
+				result.push(partitionDict(p, options.offset, index + 1))
 		if extended != null and options.getLogical
-			return getLogicalPartitions(disk, extended.byteOffset())
+			return getLogicalPartitions(disk, MBR_FIRST_LOGICAL_PARTITION, extended.byteOffset())
 			.then (logicalPartitions) ->
 				result.push(logicalPartitions...)
 				result
@@ -74,18 +80,24 @@ get = (disk, number) ->
 		throw new Error('The partition number must be at least 1.')
 	getPartitions(disk, includeExtended: true, offset: 0, getLogical: false)
 	.then (partitions) ->
-		if number <= 4
+		if number <= MBR_LAST_PRIMARY_PARTITION
 			if number <= partitions.length
 				partitions[number - 1]
 			else
 				partitionNotFoundError(number)
 		else
-			extended = _.find(partitions, (p) -> p.type == 5)
+			extended = _.find(partitions, (p) -> p.type == MBR_EXTENDED_PARTITION_TYPE)
 			if not extended
 				partitionNotFoundError(number)
 			else
-				logicalPartitionPosition = number - 5
-				getLogicalPartitions(disk, extended.offset, extended.offset, logicalPartitionPosition + 1)
+				logicalPartitionPosition = number - MBR_FIRST_LOGICAL_PARTITION
+				getLogicalPartitions(
+					disk,
+					MBR_FIRST_LOGICAL_PARTITION,
+					extended.offset,
+					extended.offset,
+					logicalPartitionPosition + 1
+				)
 				.then (logicalPartitions) ->
 					if logicalPartitionPosition < logicalPartitions.length
 						logicalPartitions[logicalPartitionPosition]
@@ -93,12 +105,12 @@ get = (disk, number) ->
 						partitionNotFoundError(number)
 
 callWithDisk = (fn, pathOrDisk, args...) ->
-	if pathOrDisk instanceof filedisk.Disk
-		fn(pathOrDisk, args...)
-	else
+	if _.isString(pathOrDisk)
 		Promise.using filedisk.openFile(pathOrDisk, 'r'), (fd) ->
 			disk = new filedisk.FileDisk(fd)
 			fn(disk, args...)
+	else
+		fn(pathOrDisk, args...)
 
 ###*
 # @summary Get information from a partition
@@ -111,13 +123,12 @@ callWithDisk = (fn, pathOrDisk, args...) ->
 # @returns {Promise<Object>} partition information
 #
 # @example
-# partitioninfo.get 'foo/bar.img',
-# 	primary: 4
-# 	logical: 1
+# partitioninfo.get('foo/bar.img', 5)
 # .then (information) ->
 # 	console.log(information.offset)
 # 	console.log(information.size)
 # 	console.log(information.type)
+# 	console.log(information.index)
 ###
 
 exports.get = (disk, number) ->
@@ -158,6 +169,7 @@ exports.get = (disk, number) ->
 # 		console.log(partition.offset)
 # 		console.log(partition.size)
 # 		console.log(partition.type)
+#		console.log(partition.index)
 ###
 exports.getPartitions = (disk, options) ->
 	options = _.defaults(options, includeExtended: true, offset: 0)
