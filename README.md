@@ -41,13 +41,12 @@ Documentation
 
 **Example**  
 ```js
-partitioninfo.get 'foo/bar.img',
-	primary: 4
-	logical: 1
+partitioninfo.get('foo/bar.img', 5)
 .then (information) ->
 	console.log(information.offset)
 	console.log(information.size)
 	console.log(information.type)
+	console.log(information.index)
 ```
 <a name="module_partitioninfo.getPartitions"></a>
 
@@ -90,6 +89,7 @@ partitioninfo.getPartitions('foo/bar.img')
 		console.log(partition.offset)
 		console.log(partition.size)
 		console.log(partition.type)
+		console.log(partition.index)
 ```
 
 Support

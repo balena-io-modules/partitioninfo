@@ -1,4 +1,4 @@
-var BOOT_RECORD_SIZE, MBR, Promise, _, callWithDisk, filedisk, get, getLogicalPartitions, getPartitions, getPartitionsFromMBRBuf, partitionDict, partitionNotFoundError, readMbr,
+var BOOT_RECORD_SIZE, MBR, MBR_EXTENDED_PARTITION_TYPE, MBR_FIRST_LOGICAL_PARTITION, MBR_LAST_PRIMARY_PARTITION, Promise, _, callWithDisk, filedisk, get, getLogicalPartitions, getPartitions, getPartitionsFromMBRBuf, partitionDict, partitionNotFoundError, readMbr,
   slice = [].slice;
 
 _ = require('lodash');
@@ -15,6 +15,12 @@ Promise = require('bluebird');
  */
 
 BOOT_RECORD_SIZE = 512;
+
+MBR_LAST_PRIMARY_PARTITION = 4;
+
+MBR_FIRST_LOGICAL_PARTITION = 5;
+
+MBR_EXTENDED_PARTITION_TYPE = 5;
 
 partitionDict = function(p, offset, index) {
   return {
@@ -89,7 +95,7 @@ getPartitions = function(disk, options) {
       }
     }
     if (extended !== null && options.getLogical) {
-      return getLogicalPartitions(disk, 5, extended.byteOffset()).then(function(logicalPartitions) {
+      return getLogicalPartitions(disk, MBR_FIRST_LOGICAL_PARTITION, extended.byteOffset()).then(function(logicalPartitions) {
         result.push.apply(result, logicalPartitions);
         return result;
       });
@@ -112,7 +118,7 @@ get = function(disk, number) {
     getLogical: false
   }).then(function(partitions) {
     var extended, logicalPartitionPosition;
-    if (number <= 4) {
+    if (number <= MBR_LAST_PRIMARY_PARTITION) {
       if (number <= partitions.length) {
         return partitions[number - 1];
       } else {
@@ -120,13 +126,13 @@ get = function(disk, number) {
       }
     } else {
       extended = _.find(partitions, function(p) {
-        return p.type === 5;
+        return p.type === MBR_EXTENDED_PARTITION_TYPE;
       });
       if (!extended) {
         return partitionNotFoundError(number);
       } else {
-        logicalPartitionPosition = number - 5;
-        return getLogicalPartitions(disk, 5, extended.offset, extended.offset, logicalPartitionPosition + 1).then(function(logicalPartitions) {
+        logicalPartitionPosition = number - MBR_FIRST_LOGICAL_PARTITION;
+        return getLogicalPartitions(disk, MBR_FIRST_LOGICAL_PARTITION, extended.offset, extended.offset, logicalPartitionPosition + 1).then(function(logicalPartitions) {
           if (logicalPartitionPosition < logicalPartitions.length) {
             return logicalPartitions[logicalPartitionPosition];
           } else {
@@ -164,13 +170,12 @@ callWithDisk = function() {
  * @returns {Promise<Object>} partition information
  *
  * @example
- * partitioninfo.get 'foo/bar.img',
- * 	primary: 4
- * 	logical: 1
+ * partitioninfo.get('foo/bar.img', 5)
  * .then (information) ->
  * 	console.log(information.offset)
  * 	console.log(information.size)
  * 	console.log(information.type)
+ * 	console.log(information.index)
  */
 
 exports.get = function(disk, number) {
@@ -213,6 +218,7 @@ exports.get = function(disk, number) {
  * 		console.log(partition.offset)
  * 		console.log(partition.size)
  * 		console.log(partition.type)
+ *		console.log(partition.index)
  */
 
 exports.getPartitions = function(disk, options) {
