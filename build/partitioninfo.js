@@ -16,11 +16,12 @@ Promise = require('bluebird');
 
 BOOT_RECORD_SIZE = 512;
 
-partitionDict = function(p, offset) {
+partitionDict = function(p, offset, index) {
   return {
     offset: offset + p.byteOffset(),
     size: p.byteSize(),
-    type: p.type
+    type: p.type,
+    index: index
   };
 };
 
@@ -34,7 +35,7 @@ readMbr = function(disk, offset) {
   return disk.readAsync(buf, 0, BOOT_RECORD_SIZE, offset)["return"](buf);
 };
 
-getLogicalPartitions = function(disk, offset, extendedPartitionOffset, limit) {
+getLogicalPartitions = function(disk, index, offset, extendedPartitionOffset, limit) {
   var result;
   if (extendedPartitionOffset == null) {
     extendedPartitionOffset = offset;
@@ -52,9 +53,9 @@ getLogicalPartitions = function(disk, offset, extendedPartitionOffset, limit) {
     for (i = 0, len = ref.length; i < len; i++) {
       p = ref[i];
       if (!MBR.Partition.isExtended(p.type)) {
-        result.push(partitionDict(p, offset));
+        result.push(partitionDict(p, offset, index));
       } else if (limit > 0) {
-        logicalPartitionsPromise = getLogicalPartitions(disk, extendedPartitionOffset + p.byteOffset(), extendedPartitionOffset, limit - 1);
+        logicalPartitionsPromise = getLogicalPartitions(disk, index + 1, extendedPartitionOffset + p.byteOffset(), extendedPartitionOffset, limit - 1);
         return logicalPartitionsPromise.then(function(logicalPartitions) {
           result.push.apply(result, logicalPartitions);
           return result;
@@ -74,21 +75,21 @@ getPartitions = function(disk, options) {
   result = [];
   extended = null;
   return readMbr(disk, options.offset).then(function(buf) {
-    var i, len, p, ref;
+    var i, index, len, p, ref;
     ref = getPartitionsFromMBRBuf(buf);
-    for (i = 0, len = ref.length; i < len; i++) {
-      p = ref[i];
+    for (index = i = 0, len = ref.length; i < len; index = ++i) {
+      p = ref[index];
       if (MBR.Partition.isExtended(p.type)) {
         extended = p;
         if (options.includeExtended) {
-          result.push(partitionDict(p, options.offset));
+          result.push(partitionDict(p, options.offset, index + 1));
         }
       } else {
-        result.push(partitionDict(p, options.offset));
+        result.push(partitionDict(p, options.offset, index + 1));
       }
     }
     if (extended !== null && options.getLogical) {
-      return getLogicalPartitions(disk, extended.byteOffset()).then(function(logicalPartitions) {
+      return getLogicalPartitions(disk, 5, extended.byteOffset()).then(function(logicalPartitions) {
         result.push.apply(result, logicalPartitions);
         return result;
       });
@@ -125,7 +126,7 @@ get = function(disk, number) {
         return partitionNotFoundError(number);
       } else {
         logicalPartitionPosition = number - 5;
-        return getLogicalPartitions(disk, extended.offset, extended.offset, logicalPartitionPosition + 1).then(function(logicalPartitions) {
+        return getLogicalPartitions(disk, 5, extended.offset, extended.offset, logicalPartitionPosition + 1).then(function(logicalPartitions) {
           if (logicalPartitionPosition < logicalPartitions.length) {
             return logicalPartitions[logicalPartitionPosition];
           } else {
@@ -140,14 +141,14 @@ get = function(disk, number) {
 callWithDisk = function() {
   var args, fn, pathOrDisk;
   fn = arguments[0], pathOrDisk = arguments[1], args = 3 <= arguments.length ? slice.call(arguments, 2) : [];
-  if (pathOrDisk instanceof filedisk.Disk) {
-    return fn.apply(null, [pathOrDisk].concat(slice.call(args)));
-  } else {
+  if (_.isString(pathOrDisk)) {
     return Promise.using(filedisk.openFile(pathOrDisk, 'r'), function(fd) {
       var disk;
       disk = new filedisk.FileDisk(fd);
       return fn.apply(null, [disk].concat(slice.call(args)));
     });
+  } else {
+    return fn.apply(null, [pathOrDisk].concat(slice.call(args)));
   }
 };
 
