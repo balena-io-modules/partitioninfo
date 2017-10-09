@@ -43,6 +43,7 @@
   "dependencies": {
     "bluebird": "^3.3.4",
     "file-disk": "^1.0.1",
+    "gpt": "^1.0.0",
     "mbr": "^0.4.4"
   }
 }

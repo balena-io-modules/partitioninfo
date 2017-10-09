@@ -1,18 +1,23 @@
 _ = require('lodash')
 filedisk = require('file-disk')
 MBR = require('mbr')
+GPT = require('gpt')
 Promise = require('bluebird')
 
 ###*
 # @module partitioninfo
 ###
 
-BOOT_RECORD_SIZE = 512
+MBR_SIZE = 512
+GPT_SIZE = 512 * 33
+
+GPT_PROTECTIVE_MBR = 0xee
+
 MBR_LAST_PRIMARY_PARTITION = 4
 MBR_FIRST_LOGICAL_PARTITION = 5
 MBR_EXTENDED_PARTITION_TYPE = 5
 
-partitionDict = (p, offset, index) ->
+mbrPartitionDict = (p, offset, index) ->
 	{
 		offset: offset + p.byteOffset()
 		size: p.byteSize()
@@ -20,23 +25,33 @@ partitionDict = (p, offset, index) ->
 		index
 	}
 
+gptPartitionDict = (gpt, p, index) ->
+	{
+		offset: p.firstLBA * gpt.blockSize
+		size: (p.lastLBA - p.firstLBA + 1) * gpt.blockSize
+		type: p.type.toString()
+		index
+	}
+
+# Only for MBR
 getPartitionsFromMBRBuf = (buf) ->
 	(new MBR(buf)).partitions.filter(_.property('type'))
 
-readMbr = (disk, offset) ->
-	buf = Buffer.allocUnsafe(BOOT_RECORD_SIZE)
-	disk.readAsync(buf, 0, BOOT_RECORD_SIZE, offset)
+readFromDisk = (disk, offset, size) ->
+	buf = Buffer.alloc(size)
+	disk.readAsync(buf, 0, size, offset)
 	.return(buf)
 
+# Only for MBR
 getLogicalPartitions = (disk, index, offset, extendedPartitionOffset = offset, limit = Infinity) ->
 	result = []
 	if limit <= 0
 		return Promise.resolve(result)
-	readMbr(disk, offset)
+	readFromDisk(disk, offset, MBR_SIZE)
 	.then (buf) ->
 		for p in getPartitionsFromMBRBuf(buf)
 			if not MBR.Partition.isExtended(p.type)
-				result.push(partitionDict(p, offset, index))
+				result.push(mbrPartitionDict(p, offset, index))
 			else if limit > 0
 				logicalPartitionsPromise = getLogicalPartitions(
 					disk
@@ -54,22 +69,34 @@ getLogicalPartitions = (disk, index, offset, extendedPartitionOffset = offset, l
 getPartitions = (disk, options) ->
 	options = _.defaults(options, getLogical: true)
 	disk = Promise.promisifyAll(disk)
-	result = []
+	result = {}
 	extended = null
-	readMbr(disk, options.offset)
-	.then (buf) ->
-		for p, index in getPartitionsFromMBRBuf(buf)
-			if MBR.Partition.isExtended(p.type)
-				extended = p
-				if options.includeExtended
-					result.push(partitionDict(p, options.offset, index + 1))
-			else
-				result.push(partitionDict(p, options.offset, index + 1))
-		if extended != null and options.getLogical
-			return getLogicalPartitions(disk, MBR_FIRST_LOGICAL_PARTITION, extended.byteOffset())
-			.then (logicalPartitions) ->
-				result.push(logicalPartitions...)
+	readFromDisk(disk, options.offset, MBR_SIZE)
+	.then (mbrBuf) ->
+		partitions = getPartitionsFromMBRBuf(mbrBuf)
+		if partitions.length is 1 and partitions[0].type is GPT_PROTECTIVE_MBR
+			result.type = 'gpt'
+			return readFromDisk(disk, MBR_SIZE, GPT_SIZE)
+			.then (gptBuf) ->
+				gpt = GPT.parse(gptBuf)
+				result.partitions = gpt.partitions.map (partition, index) ->
+					gptPartitionDict(gpt, partition, index + 1)
 				result
+		else
+			result.partitions = []
+			result.type = 'mbr'
+			for p, index in partitions
+				if MBR.Partition.isExtended(p.type)
+					extended = p
+					if options.includeExtended
+						result.partitions.push(mbrPartitionDict(p, options.offset, index + 1))
+				else
+					result.partitions.push(mbrPartitionDict(p, options.offset, index + 1))
+			if extended? and options.getLogical
+				return getLogicalPartitions(disk, MBR_FIRST_LOGICAL_PARTITION, extended.byteOffset())
+				.then (logicalPartitions) ->
+					result.partitions.push(logicalPartitions...)
+					result
 		result
 
 partitionNotFoundError = (number) ->
@@ -79,14 +106,19 @@ get = (disk, number) ->
 	if number < 1
 		throw new Error('The partition number must be at least 1.')
 	getPartitions(disk, includeExtended: true, offset: 0, getLogical: false)
-	.then (partitions) ->
+	.then (info) ->
+		if info.type is 'gpt'
+			if info.partitions.length < number
+				partitionNotFoundError(number)
+			else
+				return info.partitions[number - 1]
 		if number <= MBR_LAST_PRIMARY_PARTITION
-			if number <= partitions.length
-				partitions[number - 1]
+			if number <= info.partitions.length
+				info.partitions[number - 1]
 			else
 				partitionNotFoundError(number)
 		else
-			extended = _.find(partitions, (p) -> p.type == MBR_EXTENDED_PARTITION_TYPE)
+			extended = _.find(info.partitions, (p) -> p.type is MBR_EXTENDED_PARTITION_TYPE)
 			if not extended
 				partitionNotFoundError(number)
 			else
@@ -156,16 +188,18 @@ exports.get = (disk, number) ->
 # @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
 # @param {Object} options
 # @param {Number} [options.offset=0] - where the first partition table will be read from, in bytes
-# @param {Number} [options.includeExtended=true] - whether to include extended partitions or not
+# @param {Boolean} [options.includeExtended=true] - whether to include extended partitions or not (only for MBR partition tables)
+# @param {Boolean} [options.getLogical=true] - whether to include logical partitions or not (only for MBR partition tables)
 #
 # @throws {Error} if there is no such partition
 #
-# @returns {Promise<Array<Object>>} partitions information
+# @returns {Promise<Object>} partitions information
 #
 # @example
 # partitioninfo.getPartitions('foo/bar.img')
 # .then (information) ->
-# 	for partition in information
+	console.log(information.type)
+# 	for partition in information.partitions
 # 		console.log(partition.offset)
 # 		console.log(partition.size)
 # 		console.log(partition.type)

@@ -24,7 +24,7 @@ Documentation
 
 * [partitioninfo](#module_partitioninfo)
     * [.get(image, number)](#module_partitioninfo.get) ⇒ <code>Promise.&lt;Object&gt;</code>
-    * [.getPartitions(image, options)](#module_partitioninfo.getPartitions) ⇒ <code>Promise.&lt;Array.&lt;Object&gt;&gt;</code>
+    * [.getPartitions(image, options)](#module_partitioninfo.getPartitions) ⇒ <code>Promise.&lt;Object&gt;</code>
 
 <a name="module_partitioninfo.get"></a>
 
@@ -50,7 +50,7 @@ partitioninfo.get('foo/bar.img', 5)
 ```
 <a name="module_partitioninfo.getPartitions"></a>
 
-### partitioninfo.getPartitions(image, options) ⇒ <code>Promise.&lt;Array.&lt;Object&gt;&gt;</code>
+### partitioninfo.getPartitions(image, options) ⇒ <code>Promise.&lt;Object&gt;</code>
 `getPartitions()` returns an Array.
 `getPartitions(image)[N - 1]` may not be equal to `get(image, N)`
 For example on a disk with no primary partitions and one extended partition
@@ -67,7 +67,7 @@ the logical partitions 5, 6 and 7 are physically contained in partiton 1, 2 or 3
 
 **Kind**: static method of <code>[partitioninfo](#module_partitioninfo)</code>  
 **Summary**: Read all partition tables from a disk image recursively.  
-**Returns**: <code>Promise.&lt;Array.&lt;Object&gt;&gt;</code> - partitions information  
+**Returns**: <code>Promise.&lt;Object&gt;</code> - partitions information  
 **Throws**:
 
 - <code>Error</code> if there is no such partition
@@ -79,13 +79,15 @@ the logical partitions 5, 6 and 7 are physically contained in partiton 1, 2 or 3
 | image | <code>String</code> &#124; <code>filedisk.Disk</code> |  | image path or filedisk.Disk instance |
 | options | <code>Object</code> |  |  |
 | [options.offset] | <code>Number</code> | <code>0</code> | where the first partition table will be read from, in bytes |
-| [options.includeExtended] | <code>Number</code> | <code>true</code> | whether to include extended partitions or not |
+| [options.includeExtended] | <code>Boolean</code> | <code>true</code> | whether to include extended partitions or not (only for MBR partition tables) |
+| [options.getLogical] | <code>Boolean</code> | <code>true</code> | whether to include logical partitions or not (only for MBR partition tables) |
 
 **Example**  
 ```js
 partitioninfo.getPartitions('foo/bar.img')
 .then (information) ->
-	for partition in information
+	console.log(information.type)
+	for partition in information.partitions
 		console.log(partition.offset)
 		console.log(partition.size)
 		console.log(partition.type)
