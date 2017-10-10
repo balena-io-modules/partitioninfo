@@ -1,4 +1,4 @@
-var BOOT_RECORD_SIZE, MBR, MBR_EXTENDED_PARTITION_TYPE, MBR_FIRST_LOGICAL_PARTITION, MBR_LAST_PRIMARY_PARTITION, Promise, _, callWithDisk, filedisk, get, getLogicalPartitions, getPartitions, getPartitionsFromMBRBuf, partitionDict, partitionNotFoundError, readMbr,
+var GPT, GPT_PROTECTIVE_MBR, GPT_SIZE, MBR, MBR_EXTENDED_PARTITION_TYPE, MBR_FIRST_LOGICAL_PARTITION, MBR_LAST_PRIMARY_PARTITION, MBR_SIZE, Promise, _, callWithDisk, filedisk, get, getLogicalPartitions, getPartitions, getPartitionsFromMBRBuf, gptPartitionDict, mbrPartitionDict, partitionNotFoundError, readFromDisk,
   slice = [].slice;
 
 _ = require('lodash');
@@ -7,6 +7,8 @@ filedisk = require('file-disk');
 
 MBR = require('mbr');
 
+GPT = require('gpt');
+
 Promise = require('bluebird');
 
 
@@ -14,7 +16,11 @@ Promise = require('bluebird');
  * @module partitioninfo
  */
 
-BOOT_RECORD_SIZE = 512;
+MBR_SIZE = 512;
+
+GPT_SIZE = 512 * 33;
+
+GPT_PROTECTIVE_MBR = 0xee;
 
 MBR_LAST_PRIMARY_PARTITION = 4;
 
@@ -22,7 +28,7 @@ MBR_FIRST_LOGICAL_PARTITION = 5;
 
 MBR_EXTENDED_PARTITION_TYPE = 5;
 
-partitionDict = function(p, offset, index) {
+mbrPartitionDict = function(p, offset, index) {
   return {
     offset: offset + p.byteOffset(),
     size: p.byteSize(),
@@ -31,14 +37,23 @@ partitionDict = function(p, offset, index) {
   };
 };
 
+gptPartitionDict = function(gpt, p, index) {
+  return {
+    offset: p.firstLBA * gpt.blockSize,
+    size: (p.lastLBA - p.firstLBA + 1) * gpt.blockSize,
+    type: p.type.toString(),
+    index: index
+  };
+};
+
 getPartitionsFromMBRBuf = function(buf) {
   return (new MBR(buf)).partitions.filter(_.property('type'));
 };
 
-readMbr = function(disk, offset) {
+readFromDisk = function(disk, offset, size) {
   var buf;
-  buf = Buffer.allocUnsafe(BOOT_RECORD_SIZE);
-  return disk.readAsync(buf, 0, BOOT_RECORD_SIZE, offset)["return"](buf);
+  buf = Buffer.alloc(size);
+  return disk.readAsync(buf, 0, size, offset)["return"](buf);
 };
 
 getLogicalPartitions = function(disk, index, offset, extendedPartitionOffset, limit) {
@@ -53,13 +68,13 @@ getLogicalPartitions = function(disk, index, offset, extendedPartitionOffset, li
   if (limit <= 0) {
     return Promise.resolve(result);
   }
-  return readMbr(disk, offset).then(function(buf) {
+  return readFromDisk(disk, offset, MBR_SIZE).then(function(buf) {
     var i, len, logicalPartitionsPromise, p, ref;
     ref = getPartitionsFromMBRBuf(buf);
     for (i = 0, len = ref.length; i < len; i++) {
       p = ref[i];
       if (!MBR.Partition.isExtended(p.type)) {
-        result.push(partitionDict(p, offset, index));
+        result.push(mbrPartitionDict(p, offset, index));
       } else if (limit > 0) {
         logicalPartitionsPromise = getLogicalPartitions(disk, index + 1, extendedPartitionOffset + p.byteOffset(), extendedPartitionOffset, limit - 1);
         return logicalPartitionsPromise.then(function(logicalPartitions) {
@@ -78,27 +93,42 @@ getPartitions = function(disk, options) {
     getLogical: true
   });
   disk = Promise.promisifyAll(disk);
-  result = [];
+  result = {};
   extended = null;
-  return readMbr(disk, options.offset).then(function(buf) {
-    var i, index, len, p, ref;
-    ref = getPartitionsFromMBRBuf(buf);
-    for (index = i = 0, len = ref.length; i < len; index = ++i) {
-      p = ref[index];
-      if (MBR.Partition.isExtended(p.type)) {
-        extended = p;
-        if (options.includeExtended) {
-          result.push(partitionDict(p, options.offset, index + 1));
-        }
-      } else {
-        result.push(partitionDict(p, options.offset, index + 1));
-      }
-    }
-    if (extended !== null && options.getLogical) {
-      return getLogicalPartitions(disk, MBR_FIRST_LOGICAL_PARTITION, extended.byteOffset()).then(function(logicalPartitions) {
-        result.push.apply(result, logicalPartitions);
+  return readFromDisk(disk, options.offset, MBR_SIZE).then(function(mbrBuf) {
+    var i, index, len, p, partitions;
+    partitions = getPartitionsFromMBRBuf(mbrBuf);
+    if (partitions.length === 1 && partitions[0].type === GPT_PROTECTIVE_MBR) {
+      result.type = 'gpt';
+      return readFromDisk(disk, MBR_SIZE, GPT_SIZE).then(function(gptBuf) {
+        var gpt;
+        gpt = GPT.parse(gptBuf);
+        result.partitions = gpt.partitions.map(function(partition, index) {
+          return gptPartitionDict(gpt, partition, index + 1);
+        });
         return result;
       });
+    } else {
+      result.partitions = [];
+      result.type = 'mbr';
+      for (index = i = 0, len = partitions.length; i < len; index = ++i) {
+        p = partitions[index];
+        if (MBR.Partition.isExtended(p.type)) {
+          extended = p;
+          if (options.includeExtended) {
+            result.partitions.push(mbrPartitionDict(p, options.offset, index + 1));
+          }
+        } else {
+          result.partitions.push(mbrPartitionDict(p, options.offset, index + 1));
+        }
+      }
+      if ((extended != null) && options.getLogical) {
+        return getLogicalPartitions(disk, MBR_FIRST_LOGICAL_PARTITION, extended.byteOffset()).then(function(logicalPartitions) {
+          var ref;
+          (ref = result.partitions).push.apply(ref, logicalPartitions);
+          return result;
+        });
+      }
     }
     return result;
   });
@@ -116,16 +146,23 @@ get = function(disk, number) {
     includeExtended: true,
     offset: 0,
     getLogical: false
-  }).then(function(partitions) {
+  }).then(function(info) {
     var extended, logicalPartitionPosition;
+    if (info.type === 'gpt') {
+      if (info.partitions.length < number) {
+        partitionNotFoundError(number);
+      } else {
+        return info.partitions[number - 1];
+      }
+    }
     if (number <= MBR_LAST_PRIMARY_PARTITION) {
-      if (number <= partitions.length) {
-        return partitions[number - 1];
+      if (number <= info.partitions.length) {
+        return info.partitions[number - 1];
       } else {
         return partitionNotFoundError(number);
       }
     } else {
-      extended = _.find(partitions, function(p) {
+      extended = _.find(info.partitions, function(p) {
         return p.type === MBR_EXTENDED_PARTITION_TYPE;
       });
       if (!extended) {
@@ -205,16 +242,18 @@ exports.get = function(disk, number) {
  * @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
  * @param {Object} options
  * @param {Number} [options.offset=0] - where the first partition table will be read from, in bytes
- * @param {Number} [options.includeExtended=true] - whether to include extended partitions or not
+ * @param {Boolean} [options.includeExtended=true] - whether to include extended partitions or not (only for MBR partition tables)
+ * @param {Boolean} [options.getLogical=true] - whether to include logical partitions or not (only for MBR partition tables)
  *
  * @throws {Error} if there is no such partition
  *
- * @returns {Promise<Array<Object>>} partitions information
+ * @returns {Promise<Object>} partitions information
  *
  * @example
  * partitioninfo.getPartitions('foo/bar.img')
  * .then (information) ->
- * 	for partition in information
+	console.log(information.type)
+ * 	for partition in information.partitions
  * 		console.log(partition.offset)
  * 		console.log(partition.size)
  * 		console.log(partition.type)
