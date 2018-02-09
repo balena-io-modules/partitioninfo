@@ -15,7 +15,6 @@ GPT_PROTECTIVE_MBR = 0xee
 
 MBR_LAST_PRIMARY_PARTITION = 4
 MBR_FIRST_LOGICAL_PARTITION = 5
-MBR_EXTENDED_PARTITION_TYPE = 5
 
 mbrPartitionDict = (p, offset, index) ->
 	{
@@ -118,7 +117,7 @@ get = (disk, number) ->
 			else
 				partitionNotFoundError(number)
 		else
-			extended = _.find(info.partitions, (p) -> p.type is MBR_EXTENDED_PARTITION_TYPE)
+			extended = _.find(info.partitions, (p) -> MBR.Partition.isExtended(p.type))
 			if not extended
 				partitionNotFoundError(number)
 			else

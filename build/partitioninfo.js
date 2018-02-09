@@ -1,4 +1,4 @@
-var GPT, GPT_PROTECTIVE_MBR, GPT_SIZE, MBR, MBR_EXTENDED_PARTITION_TYPE, MBR_FIRST_LOGICAL_PARTITION, MBR_LAST_PRIMARY_PARTITION, MBR_SIZE, Promise, _, callWithDisk, filedisk, get, getLogicalPartitions, getPartitions, getPartitionsFromMBRBuf, gptPartitionDict, mbrPartitionDict, partitionNotFoundError, readFromDisk,
+var GPT, GPT_PROTECTIVE_MBR, GPT_SIZE, MBR, MBR_FIRST_LOGICAL_PARTITION, MBR_LAST_PRIMARY_PARTITION, MBR_SIZE, Promise, _, callWithDisk, filedisk, get, getLogicalPartitions, getPartitions, getPartitionsFromMBRBuf, gptPartitionDict, mbrPartitionDict, partitionNotFoundError, readFromDisk,
   slice = [].slice;
 
 _ = require('lodash');
@@ -25,8 +25,6 @@ GPT_PROTECTIVE_MBR = 0xee;
 MBR_LAST_PRIMARY_PARTITION = 4;
 
 MBR_FIRST_LOGICAL_PARTITION = 5;
-
-MBR_EXTENDED_PARTITION_TYPE = 5;
 
 mbrPartitionDict = function(p, offset, index) {
   return {
@@ -163,7 +161,7 @@ get = function(disk, number) {
       }
     } else {
       extended = _.find(info.partitions, function(p) {
-        return p.type === MBR_EXTENDED_PARTITION_TYPE;
+        return MBR.Partition.isExtended(p.type);
       });
       if (!extended) {
         return partitionNotFoundError(number);
