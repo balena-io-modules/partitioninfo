@@ -37,9 +37,9 @@ getPartitionsFromMBRBuf = (buf) ->
 	(new MBR(buf)).partitions.filter(_.property('type'))
 
 readFromDisk = (disk, offset, size) ->
-	buf = Buffer.alloc(size)
-	disk.readAsync(buf, 0, size, offset)
-	.return(buf)
+	disk.read(Buffer.alloc(size), 0, size, offset)
+	.then ({ buffer }) ->
+		buffer
 
 # Only for MBR
 getLogicalPartitions = (disk, index, offset, extendedPartitionOffset = offset, limit = Infinity) ->
@@ -67,7 +67,6 @@ getLogicalPartitions = (disk, index, offset, extendedPartitionOffset = offset, l
 
 getPartitions = (disk, options) ->
 	options = _.defaults(options, getLogical: true)
-	disk = Promise.promisifyAll(disk)
 	result = {}
 	extended = null
 	readFromDisk(disk, options.offset, MBR_SIZE)

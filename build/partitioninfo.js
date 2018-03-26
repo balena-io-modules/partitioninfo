@@ -50,9 +50,11 @@ getPartitionsFromMBRBuf = function(buf) {
 };
 
 readFromDisk = function(disk, offset, size) {
-  var buf;
-  buf = Buffer.alloc(size);
-  return disk.readAsync(buf, 0, size, offset)["return"](buf);
+  return disk.read(Buffer.alloc(size), 0, size, offset).then(function(arg) {
+    var buffer;
+    buffer = arg.buffer;
+    return buffer;
+  });
 };
 
 getLogicalPartitions = function(disk, index, offset, extendedPartitionOffset, limit) {
@@ -91,7 +93,6 @@ getPartitions = function(disk, options) {
   options = _.defaults(options, {
     getLogical: true
   });
-  disk = Promise.promisifyAll(disk);
   result = {};
   extended = null;
   return readFromDisk(disk, options.offset, MBR_SIZE).then(function(mbrBuf) {
