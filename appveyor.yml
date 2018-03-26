@@ -18,7 +18,6 @@ install:
   - ps: Install-Product node $env:nodejs_version x64
   - npm -g install npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
-  - npm install -g gulp
   - npm install
 
 build: off
@@ -26,5 +25,5 @@ build: off
 test_script:
   - node --version
   - npm --version
-  - ps: gulp test
-  - cmd: gulp test
+  - ps: npm test
+  - cmd: npm test
