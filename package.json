@@ -1,6 +1,6 @@
 {
   "name": "partitioninfo",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Get information about a partition from an image file",
   "main": "build/partitioninfo.js",
   "homepage": "https://github.com/resin-io-modules/partitioninfo",
@@ -47,7 +47,7 @@
   "dependencies": {
     "bluebird": "^3.3.4",
     "file-disk": "^4.1.1",
-    "gpt": "^1.0.0",
+    "gpt": "^2.0.0",
     "mbr": "^0.4.4"
   }
 }
