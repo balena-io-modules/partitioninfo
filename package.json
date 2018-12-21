@@ -19,14 +19,17 @@
   },
   "files": [
     "build/*.js",
+    "build/*.d.ts",
+    "build/*.js.map",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "lint": "resin-lint lib tests",
-    "build": "coffee --bare -o build lib",
-    "test": "npm run lint && npm run build && mocha --compilers coffee:coffee-script/register tests",
+    "lint": "resin-lint --typescript lib tests typings",
+    "prettier": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"lib/**/*.ts\" \"typings/**/*.ts\" \"tests/**/*.ts\"",
+    "build": "tsc",
+    "test": "npm run lint && npm run build && mocha -r ts-node/register tests/**/*.spec.ts",
     "readme": "jsdoc2md --template doc/README.hbs build/partitioninfo.js > README.md",
     "prepublish": "npm run test && npm run readme"
   },
@@ -37,17 +40,20 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "coffee-script": "^1.10.0",
-    "jsdoc-to-markdown": "^1.3.3",
-    "lodash": "^4.6.1",
-    "mocha": "^2.4.5",
-    "mochainon": "^1.0.0",
-    "resin-lint": "^1.5.0"
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.4",
+    "chai": "^4.2.0",
+    "jsdoc-to-markdown": "^4.0.1",
+    "mocha": "^5.2.0",
+    "resin-lint": "^2.0.1",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.2.2"
   },
   "dependencies": {
-    "bluebird": "^3.3.4",
+    "bluebird": "^3.5.3",
     "file-disk": "^5.0.0",
     "gpt": "^2.0.0",
-    "mbr": "^1.1.3"
+    "mbr": "^1.1.3",
+    "typed-error": "^3.0.2"
   }
 }
