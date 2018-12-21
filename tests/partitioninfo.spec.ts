@@ -1,69 +1,153 @@
+import { promisify } from 'bluebird';
 import { assert, expect } from 'chai';
+import { readFile } from 'fs';
 import 'mocha';
 
-import * as partitioninfo from '../build/partitioninfo';
+import {
+	get,
+	getPartitions,
+	MBRPartition,
+	GPTPartition,
+} from '../build/partitioninfo';
+
+const readFileAsync = promisify(readFile);
 
 const GPT_DISK_PATH = './tests/gpt/disk.img';
 const MBR_DISK_PATH = './tests/mbr/disk.img';
 const MBR_DISK2_PATH = './tests/mbr/disk2.img';
+const RPI_DISK_PATH = './tests/mbr/rpi.data';
 
+const buffers: Map<string, Buffer> = new Map();
+
+async function getBuffer(path: string): Promise<Buffer> {
+	let buffer = buffers.get(path);
+	if (buffer === undefined) {
+		buffer = await readFileAsync(path);
+		buffers.set(path, buffer);
+	}
+	return buffer;
+}
+
+async function testGetIt(
+	readBufferFirst: boolean,
+	path: string,
+	partitionNumber: number,
+	expected?: MBRPartition | GPTPartition,
+): Promise<void> {
+	const pathOrBuffer: string | Buffer = readBufferFirst
+		? await getBuffer(path)
+		: path;
+	try {
+		const partition = await get(pathOrBuffer, partitionNumber);
+		if (expected === undefined) {
+			assert.fail();
+		} else {
+			expect(partition).to.deep.equal(expected);
+		}
+	} catch (error) {
+		if (expected === undefined) {
+			expect(error.message).to.deep.equal(
+				`Partition not found: ${partitionNumber}.`,
+			);
+		} else {
+			throw error;
+		}
+	}
+}
+
+async function testGetOnPathAndBuffer(
+	testTitle: string,
+	path: string,
+	partitionNumber: number,
+	expected?: MBRPartition | GPTPartition,
+): Promise<void> {
+	it(
+		`${testTitle} (path)`,
+		testGetIt.bind(null, false, path, partitionNumber, expected),
+	);
+	it(
+		`${testTitle} (Buffer)`,
+		testGetIt.bind(null, true, path, partitionNumber, expected),
+	);
+}
+
+async function testGetPartitionsIt(
+	readBufferFirst: boolean,
+	path: string,
+	options: any,
+	expected: MBRPartition[] | GPTPartition[],
+): Promise<void> {
+	const pathOrBuffer: string | Buffer = readBufferFirst
+		? await getBuffer(path)
+		: path;
+	const info = await getPartitions(pathOrBuffer, options);
+	expect(info.partitions).to.deep.equal(expected);
+}
+
+async function testGetPartitionsOnPathAndBuffer(
+	testTitle: string,
+	path: string,
+	options: any,
+	expected: MBRPartition[] | GPTPartition[],
+): Promise<void> {
+	it(
+		`${testTitle} (path)`,
+		testGetPartitionsIt.bind(null, false, path, options, expected),
+	);
+	it(
+		`${testTitle} (Buffer)`,
+		testGetPartitionsIt.bind(null, true, path, options, expected),
+	);
+}
 describe('Partitioninfo:', () => {
 	describe('.get() mbr disk 1', () => {
-		it('should return an information object', async () => {
-			const partition = await partitioninfo.get('./tests/mbr/rpi.data', 1);
-			expect(partition).to.deep.equal({
-				index: 1,
-				offset: 4194304,
-				size: 20971520,
-				type: 12,
-			});
-		});
+		testGetOnPathAndBuffer(
+			'should return an information object',
+			RPI_DISK_PATH,
+			1,
+			{ index: 1, offset: 4194304, size: 20971520, type: 12 },
+		);
 
-		it('should be able to get the second logical partition of the extended one', async () => {
-			const partition = await partitioninfo.get(MBR_DISK_PATH, 6);
-			expect(partition).to.deep.equal({
-				index: 6,
-				offset: 3149824,
-				size: 1024,
-				type: 131,
-			});
-		});
+		testGetOnPathAndBuffer(
+			'should be able to get the second logical partition of the extended one',
+			MBR_DISK_PATH,
+			6,
+			{ index: 6, offset: 3149824, size: 1024, type: 131 },
+		);
 
-		it('should throw an error when asked for a non existing partition', async () => {
-			try {
-				await partitioninfo.get(MBR_DISK_PATH, 10);
-				assert.fail();
-			} catch (error) {
-				expect(error.message).to.deep.equal('Partition not found: 10.');
-			}
-		});
+		testGetOnPathAndBuffer(
+			'should throw an error when asked for a non existing partition',
+			MBR_DISK_PATH,
+			10,
+		);
 	});
 
 	describe('.get() gpt disk 1', () => {
-		it('should be able to get the sixth partition', async () => {
-			const partition = await partitioninfo.get(GPT_DISK_PATH, 6);
-			expect(partition).to.deep.equal({
+		testGetOnPathAndBuffer(
+			'should be able to get the sixth partition',
+			GPT_DISK_PATH,
+			6,
+			{
 				index: 6,
 				offset: 6291456,
 				size: 1048576,
 				type: '0FC63DAF-8483-4772-8E79-3D69D8477DE4',
-			});
-		});
+			},
+		);
 
-		it('should throw an error when asked for a non existing partition', async () => {
-			try {
-				await partitioninfo.get(GPT_DISK_PATH, 10);
-				assert.fail();
-			} catch (error) {
-				expect(error.message).to.deep.equal('Partition not found: 10.');
-			}
-		});
+		testGetOnPathAndBuffer(
+			'should throw an error when asked for a non existing partition',
+			GPT_DISK_PATH,
+			10,
+		);
 	});
 
-	describe('.getPartitions() mbr disk 1', () =>
-		it('should list all partitions of a disk image', async () => {
-			const { partitions } = await partitioninfo.getPartitions(MBR_DISK_PATH);
-			expect(partitions).to.deep.equal([
+	describe('.getPartitions() mbr disk 1', () => {
+		testGetPartitionsOnPathAndBuffer(
+			'should list all partitions of a disk image',
+			MBR_DISK_PATH,
+			undefined,
+			[
 				{
 					index: 1,
 					offset: 1048576,
@@ -112,13 +196,16 @@ describe('Partitioninfo:', () => {
 					size: 1024,
 					type: 131,
 				},
-			]);
-		}));
+			],
+		);
+	});
 
-	describe('.getPartitions() gpt disk 1', () =>
-		it('should list all partitions of a disk image', async () => {
-			const { partitions } = await partitioninfo.getPartitions(GPT_DISK_PATH);
-			expect(partitions).to.deep.equal([
+	describe('.getPartitions() gpt disk 1', () => {
+		testGetPartitionsOnPathAndBuffer(
+			'should list all partitions of a disk image',
+			GPT_DISK_PATH,
+			undefined,
+			[
 				{
 					index: 1,
 					offset: 1048576,
@@ -167,15 +254,16 @@ describe('Partitioninfo:', () => {
 					size: 1048576,
 					type: '0FC63DAF-8483-4772-8E79-3D69D8477DE4',
 				},
-			]);
-		}));
+			],
+		);
+	});
 
-	describe('.getPartitions() mbr disk 1 includeExtended = false', () =>
-		it('should list all partitions of a disk image except the extended one', async () => {
-			const { partitions } = await partitioninfo.getPartitions(MBR_DISK_PATH, {
-				includeExtended: false,
-			});
-			expect(partitions).to.deep.equal([
+	describe('.getPartitions() mbr disk 1 includeExtended = false', () => {
+		testGetPartitionsOnPathAndBuffer(
+			'should list all partitions of a disk image except the extended one',
+			MBR_DISK_PATH,
+			{ includeExtended: false },
+			[
 				{
 					index: 1,
 					offset: 1048576,
@@ -218,53 +306,44 @@ describe('Partitioninfo:', () => {
 					size: 1024,
 					type: 131,
 				},
-			]);
-		}));
-
-	describe('.get() mbr disk 2', () => {
-		it('should be able to get the first logical partition of the extended one', async () => {
-			const partition = await partitioninfo.get(MBR_DISK2_PATH, 5);
-			expect(partition).to.deep.equal({
-				index: 5,
-				offset: 3145728,
-				size: 1048576,
-				type: 131,
-			});
-		});
-
-		it('should be able to get the second logical partition of the extended one', async () => {
-			const partition = await partitioninfo.get(MBR_DISK2_PATH, 6);
-			expect(partition).to.deep.equal({
-				index: 6,
-				offset: 5242880,
-				size: 1048576,
-				type: 131,
-			});
-		});
-
-		it('should return an error when asked for a non existing logical partition', async () => {
-			try {
-				await partitioninfo.get(MBR_DISK2_PATH, 10);
-				assert.fail();
-			} catch (error) {
-				expect(error.message).to.deep.equal('Partition not found: 10.');
-			}
-		});
-
-		it('should return an error when asked for a non existing primary partition', async () => {
-			try {
-				await partitioninfo.get(MBR_DISK2_PATH, 4);
-				assert.fail();
-			} catch (error) {
-				expect(error.message).to.deep.equal('Partition not found: 4.');
-			}
-		});
+			],
+		);
 	});
 
-	describe('.getPartitions() mbr disk 2', () =>
-		it('should list all partitions of a disk image', async () => {
-			const { partitions } = await partitioninfo.getPartitions(MBR_DISK2_PATH);
-			expect(partitions).to.deep.equal([
+	describe('.get() mbr disk 2', () => {
+		testGetOnPathAndBuffer(
+			'should be able to get the first logical partition of the extended one',
+			MBR_DISK2_PATH,
+			5,
+			{ index: 5, offset: 3145728, size: 1048576, type: 131 },
+		);
+
+		testGetOnPathAndBuffer(
+			'should be able to get the second logical partition of the extended one',
+			MBR_DISK2_PATH,
+			6,
+			{ index: 6, offset: 5242880, size: 1048576, type: 131 },
+		);
+
+		testGetOnPathAndBuffer(
+			'should return an error when asked for a non existing logical partition',
+			MBR_DISK2_PATH,
+			10,
+		);
+
+		testGetOnPathAndBuffer(
+			'should return an error when asked for a non existing primary partition',
+			MBR_DISK2_PATH,
+			4,
+		);
+	});
+
+	describe('.getPartitions() mbr disk 2', () => {
+		testGetPartitionsOnPathAndBuffer(
+			'should list all partitions of a disk image',
+			MBR_DISK2_PATH,
+			undefined,
+			[
 				{
 					index: 1,
 					offset: 1048576,
@@ -301,15 +380,16 @@ describe('Partitioninfo:', () => {
 					size: 1048576,
 					type: 131,
 				},
-			]);
-		}));
+			],
+		);
+	});
 
-	describe('.getPartitions() mbr disk 2 includeExtended = false', () =>
-		it('should list all partitions of a disk image except the extended one', async () => {
-			const { partitions } = await partitioninfo.getPartitions(MBR_DISK2_PATH, {
-				includeExtended: false,
-			});
-			expect(partitions).to.deep.equal([
+	describe('.getPartitions() mbr disk 2 includeExtended = false', () => {
+		testGetPartitionsOnPathAndBuffer(
+			'should list all partitions of a disk image except the extended one',
+			MBR_DISK2_PATH,
+			{ includeExtended: false },
+			[
 				{
 					index: 1,
 					offset: 1048576,
@@ -340,6 +420,7 @@ describe('Partitioninfo:', () => {
 					size: 1048576,
 					type: 131,
 				},
-			]);
-		}));
+			],
+		);
+	});
 });
