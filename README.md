@@ -23,20 +23,20 @@ Documentation
 
 
 * [partitioninfo](#module_partitioninfo)
-    * [.get(image, number)](#module_partitioninfo.get) ⇒ <code>Promise.&lt;Object&gt;</code>
-    * [.getPartitions(image, options)](#module_partitioninfo.getPartitions) ⇒ <code>Promise.&lt;Object&gt;</code>
+    * [~get(image, number)](#module_partitioninfo..get) ⇒ <code>Promise.&lt;Object&gt;</code>
+    * [~getPartitions(image, options)](#module_partitioninfo..getPartitions) ⇒ <code>Promise.&lt;Object&gt;</code>
 
-<a name="module_partitioninfo.get"></a>
+<a name="module_partitioninfo..get"></a>
 
-### partitioninfo.get(image, number) ⇒ <code>Promise.&lt;Object&gt;</code>
-**Kind**: static method of <code>[partitioninfo](#module_partitioninfo)</code>  
+### partitioninfo~get(image, number) ⇒ <code>Promise.&lt;Object&gt;</code>
+**Kind**: inner method of [<code>partitioninfo</code>](#module_partitioninfo)  
 **Summary**: Get information from a partition  
 **Returns**: <code>Promise.&lt;Object&gt;</code> - partition information  
-**Access:** public  
+**Access**: public  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| image | <code>String</code> &#124; <code>filedisk.Disk</code> | image path or filedisk.Disk instance |
+| image | <code>String</code> \| <code>filedisk.Disk</code> | image path or filedisk.Disk instance |
 | number | <code>Object</code> | partition number |
 
 **Example**  
@@ -48,9 +48,9 @@ partitioninfo.get('foo/bar.img', 5)
 	console.log(information.type)
 	console.log(information.index)
 ```
-<a name="module_partitioninfo.getPartitions"></a>
+<a name="module_partitioninfo..getPartitions"></a>
 
-### partitioninfo.getPartitions(image, options) ⇒ <code>Promise.&lt;Object&gt;</code>
+### partitioninfo~getPartitions(image, options) ⇒ <code>Promise.&lt;Object&gt;</code>
 `getPartitions()` returns an Array.
 `getPartitions(image)[N - 1]` may not be equal to `get(image, N)`
 For example on a disk with no primary partitions and one extended partition
@@ -65,18 +65,18 @@ first then the logical ones. This is true even if the extended partition is not 
 last one of the disk image. Order will always be 1, [2, 3, 4, 5, 6, 7] even if
 the logical partitions 5, 6 and 7 are physically contained in partiton 1, 2 or 3.
 
-**Kind**: static method of <code>[partitioninfo](#module_partitioninfo)</code>  
+**Kind**: inner method of [<code>partitioninfo</code>](#module_partitioninfo)  
 **Summary**: Read all partition tables from a disk image recursively.  
 **Returns**: <code>Promise.&lt;Object&gt;</code> - partitions information  
 **Throws**:
 
 - <code>Error</code> if there is no such partition
 
-**Access:** public  
+**Access**: public  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| image | <code>String</code> &#124; <code>filedisk.Disk</code> |  | image path or filedisk.Disk instance |
+| image | <code>String</code> \| <code>filedisk.Disk</code> |  | image path or filedisk.Disk instance |
 | options | <code>Object</code> |  |  |
 | [options.offset] | <code>Number</code> | <code>0</code> | where the first partition table will be read from, in bytes |
 | [options.includeExtended] | <code>Boolean</code> | <code>true</code> | whether to include extended partitions or not (only for MBR partition tables) |
