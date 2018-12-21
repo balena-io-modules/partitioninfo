@@ -1,5 +1,5 @@
 import { using } from 'bluebird';
-import { Disk, FileDisk, openFile } from 'file-disk';
+import { BufferDisk, Disk, FileDisk, openFile } from 'file-disk';
 import * as GPT from 'gpt';
 import * as MBR from 'mbr';
 import { TypedError } from 'typed-error';
@@ -156,7 +156,7 @@ async function getDiskPartitions(
 	}
 }
 
-class PartitionNotFound extends TypedError {
+export class PartitionNotFound extends TypedError {
 	constructor(partitionNumber: number) {
 		super(`Partition not found: ${partitionNumber}.`);
 	}
@@ -215,15 +215,17 @@ function isString(x: any): x is string {
 
 async function callWithDisk<ParameterType, ReturnType>(
 	fn: (disk: Disk, arg: ParameterType) => Promise<ReturnType>,
-	pathOrDisk: string | Disk,
+	pathOrBufferOrDisk: string | Buffer | Disk,
 	arg: ParameterType,
 ): Promise<ReturnType> {
-	if (isString(pathOrDisk)) {
-		return await using(openFile(pathOrDisk, 'r'), async fd => {
+	if (isString(pathOrBufferOrDisk)) {
+		return await using(openFile(pathOrBufferOrDisk, 'r'), async fd => {
 			return await fn(new FileDisk(fd), arg);
 		});
+	} else if (Buffer.isBuffer(pathOrBufferOrDisk)) {
+		return await fn(new BufferDisk(pathOrBufferOrDisk), arg);
 	} else {
-		return await fn(pathOrDisk, arg);
+		return await fn(pathOrBufferOrDisk, arg);
 	}
 }
 
@@ -232,7 +234,7 @@ async function callWithDisk<ParameterType, ReturnType>(
  * @public
  * @function
  *
- * @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
+ * @param {String|Buffer|filedisk.Disk} image - image path or buffer or filedisk.Disk instance
  * @param {Object} number - partition number
  *
  * @returns {Promise<Object>} partition information
@@ -247,7 +249,7 @@ async function callWithDisk<ParameterType, ReturnType>(
  */
 
 export async function get(
-	disk: string | Disk,
+	disk: string | Buffer | Disk,
 	partitionNumber: number,
 ): Promise<MBRPartition | GPTPartition> {
 	return await callWithDisk(getPartition, disk, partitionNumber);
@@ -272,7 +274,7 @@ export async function get(
  * last one of the disk image. Order will always be 1, [2, 3, 4, 5, 6, 7] even if
  * the logical partitions 5, 6 and 7 are physically contained in partiton 1, 2 or 3.
  *
- * @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
+ * @param {String|Buffer|filedisk.Disk} image - image path or buffer or filedisk.Disk instance
  * @param {Object} options
  * @param {Number} [options.offset=0] - where the first partition table will be read from, in bytes
  * @param {Boolean} [options.includeExtended=true] - whether to include extended partitions or not (only for MBR partition tables)
@@ -293,7 +295,7 @@ export async function get(
  * 		console.log(partition.index)
  */
 export async function getPartitions(
-	disk: string | Disk,
+	disk: string | Buffer | Disk,
 	{
 		offset = 0,
 		includeExtended = true,

@@ -114,6 +114,7 @@ class PartitionNotFound extends typed_error_1.TypedError {
         super(`Partition not found: ${partitionNumber}.`);
     }
 }
+exports.PartitionNotFound = PartitionNotFound;
 function getPartition(disk, partitionNumber) {
     return __awaiter(this, void 0, void 0, function* () {
         if (partitionNumber < 1) {
@@ -159,15 +160,18 @@ function getPartition(disk, partitionNumber) {
 function isString(x) {
     return typeof x === 'string';
 }
-function callWithDisk(fn, pathOrDisk, arg) {
+function callWithDisk(fn, pathOrBufferOrDisk, arg) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (isString(pathOrDisk)) {
-            return yield bluebird_1.using(file_disk_1.openFile(pathOrDisk, 'r'), (fd) => __awaiter(this, void 0, void 0, function* () {
+        if (isString(pathOrBufferOrDisk)) {
+            return yield bluebird_1.using(file_disk_1.openFile(pathOrBufferOrDisk, 'r'), (fd) => __awaiter(this, void 0, void 0, function* () {
                 return yield fn(new file_disk_1.FileDisk(fd), arg);
             }));
         }
+        else if (Buffer.isBuffer(pathOrBufferOrDisk)) {
+            return yield fn(new file_disk_1.BufferDisk(pathOrBufferOrDisk), arg);
+        }
         else {
-            return yield fn(pathOrDisk, arg);
+            return yield fn(pathOrBufferOrDisk, arg);
         }
     });
 }
@@ -176,7 +180,7 @@ function callWithDisk(fn, pathOrDisk, arg) {
  * @public
  * @function
  *
- * @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
+ * @param {String|Buffer|filedisk.Disk} image - image path or buffer or filedisk.Disk instance
  * @param {Object} number - partition number
  *
  * @returns {Promise<Object>} partition information
@@ -214,7 +218,7 @@ exports.get = get;
  * last one of the disk image. Order will always be 1, [2, 3, 4, 5, 6, 7] even if
  * the logical partitions 5, 6 and 7 are physically contained in partiton 1, 2 or 3.
  *
- * @param {String|filedisk.Disk} image - image path or filedisk.Disk instance
+ * @param {String|Buffer|filedisk.Disk} image - image path or buffer or filedisk.Disk instance
  * @param {Object} options
  * @param {Number} [options.offset=0] - where the first partition table will be read from, in bytes
  * @param {Boolean} [options.includeExtended=true] - whether to include extended partitions or not (only for MBR partition tables)
