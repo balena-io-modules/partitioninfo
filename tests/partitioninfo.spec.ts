@@ -13,6 +13,8 @@ import {
 const readFileAsync = promisify(readFile);
 
 const GPT_DISK_PATH = './tests/gpt/disk.img';
+// 4096 bytes logical sectors
+const GPT4096_DISK_PATH = './tests/gpt/disk-4096.img';
 const MBR_DISK_PATH = './tests/mbr/disk.img';
 const MBR_DISK2_PATH = './tests/mbr/disk2.img';
 const RPI_DISK_PATH = './tests/mbr/rpi.data';
@@ -419,6 +421,34 @@ describe('Partitioninfo:', () => {
 					offset: 7340032,
 					size: 1048576,
 					type: 131,
+				},
+			],
+		);
+	});
+
+	describe('getPartitions on GPT disk with 4096 bytes logical sector size', () => {
+		testGetPartitionsOnPathAndBuffer(
+			'should list all partitions',
+			GPT4096_DISK_PATH,
+			{},
+			[
+				{
+					index: 1,
+					offset: 131072,
+					size: 131072,
+					type: '21686148-6449-6E6F-744E-656564454649',
+				},
+				{
+					index: 2,
+					offset: 262144,
+					size: 655360,
+					type: 'C12A7328-F81F-11D2-BA4B-00A0C93EC93B',
+				},
+				{
+					index: 3,
+					offset: 917504,
+					size: 390656,
+					type: 'EBD0A0A2-B9E5-4433-87C0-68B6B72699C7',
 				},
 			],
 		);

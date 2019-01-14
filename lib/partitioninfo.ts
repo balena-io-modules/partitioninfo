@@ -9,7 +9,7 @@ import { TypedError } from 'typed-error';
  */
 
 const MBR_SIZE = 512;
-const GPT_SIZE = 512 * 33;
+const GPT_SIZE = 512 * 41;
 
 const GPT_PROTECTIVE_MBR = 0xee;
 
@@ -107,6 +107,24 @@ async function getLogicalPartitions(
 	return result;
 }
 
+function detectGPT(buffer: Buffer): GPT {
+	let blockSize = MBR_SIZE;
+	// Attempt to parse the GPT from several offsets,
+	// as the block size of the image may vary (512,1024,2048,4096);
+	// For example, ISOs will usually have a block size of 4096,
+	// but raw images a block size of 512 bytes
+	let lastError: Error;
+	while (blockSize <= 4096) {
+		try {
+			return GPT.parse(buffer.slice(blockSize));
+		} catch (error) {
+			lastError = error;
+		}
+		blockSize *= 2;
+	}
+	throw lastError!;
+}
+
 export type GetPartitionsResult =
 	| { type: 'mbr'; partitions: MBRPartition[] }
 	| { type: 'gpt'; partitions: GPTPartition[] };
@@ -123,8 +141,8 @@ async function getDiskPartitions(
 	const mbrBuf = await readFromDisk(disk, offset, MBR_SIZE);
 	const partitions = getPartitionsFromMBRBuf(mbrBuf);
 	if (partitions.length === 1 && partitions[0].type === GPT_PROTECTIVE_MBR) {
-		const gptBuf = await readFromDisk(disk, MBR_SIZE, GPT_SIZE);
-		const gpt = GPT.parse(gptBuf);
+		const gptBuf = await readFromDisk(disk, 0, GPT_SIZE);
+		const gpt = detectGPT(gptBuf);
 		return {
 			type: 'gpt',
 			partitions: gpt.partitions.map((partition, index) =>
