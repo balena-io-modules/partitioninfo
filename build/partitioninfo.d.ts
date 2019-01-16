@@ -12,6 +12,8 @@ export interface GPTPartition {
     size: number;
     type: string;
     index: number;
+    guid: string;
+    name: string;
 }
 export declare type GetPartitionsResult = {
     type: 'mbr';

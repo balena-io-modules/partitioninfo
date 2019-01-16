@@ -11,6 +11,8 @@ declare module 'gpt' {
 			type: string;
 			firstLBA: number;
 			lastLBA: number;
+			guid: string;
+			name: string;
 		}
 	}
 

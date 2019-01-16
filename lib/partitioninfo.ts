@@ -28,6 +28,8 @@ export interface GPTPartition {
 	size: number;
 	type: string;
 	index: number;
+	guid: string;
+	name: string;
 }
 
 function mbrPartitionDict(
@@ -52,6 +54,8 @@ function gptPartitionDict(
 		offset: p.firstLBA * gpt.blockSize,
 		size: (p.lastLBA - p.firstLBA + 1) * gpt.blockSize,
 		type: p.type,
+		guid: p.guid,
+		name: p.name,
 		index,
 	};
 }
