@@ -34,6 +34,8 @@ function gptPartitionDict(gpt, p, index) {
         offset: p.firstLBA * gpt.blockSize,
         size: (p.lastLBA - p.firstLBA + 1) * gpt.blockSize,
         type: p.type,
+        guid: p.guid,
+        name: p.name,
         index,
     };
 }
