@@ -1,18 +1,18 @@
 declare module 'gpt' {
 	class GPT {
-		blockSize: number;
-		partitions: GPT.Partition[];
+		public blockSize: number;
+		public partitions: GPT.Partition[];
 	}
 
 	namespace GPT {
 		export function parse(buffer: Buffer): GPT;
 
 		export class Partition {
-			type: string;
-			firstLBA: number;
-			lastLBA: number;
-			guid: string;
-			name: string;
+			public type: string;
+			public firstLBA: number;
+			public lastLBA: number;
+			public guid: string;
+			public name: string;
 		}
 	}
 

@@ -6,33 +6,33 @@ declare module 'mbr' {
 	}
 
 	class MBR {
-		physicalDrive: number;
-		timestamp: {
+		public physicalDrive: number;
+		public timestamp: {
 			seconds: number;
 			minutes: number;
 			hours: number;
 		};
-		signature: number;
-		copyProtected: boolean;
-		partitions: MBR.Partition[];
-		code: { offset: number; data: Buffer }[];
+		public signature: number;
+		public copyProtected: boolean;
+		public partitions: MBR.Partition[];
+		public code: Array<{ offset: number; data: Buffer }>;
 		constructor(buffer: Buffer);
 	}
 
 	namespace MBR {
 		export class Partition {
-			status: number;
-			type: number;
-			sectors: number;
-			firstLBA: number;
-			firstCHS: CHS;
-			lastCHS: CHS;
-			extended: boolean;
+			public status: number;
+			public type: number;
+			public sectors: number;
+			public firstLBA: number;
+			public firstCHS: CHS;
+			public lastCHS: CHS;
+			public extended: boolean;
 
-			byteOffset(blockSize?: number): number;
-			byteSize(blockSize?: number): number;
+			public byteOffset(blockSize?: number): number;
+			public byteSize(blockSize?: number): number;
 
-			static isExtended(type: number): boolean;
+			public static isExtended(type: number): boolean;
 		}
 	}
 

@@ -6,8 +6,8 @@ import 'mocha';
 import {
 	get,
 	getPartitions,
-	MBRPartition,
 	GPTPartition,
+	MBRPartition,
 } from '../build/partitioninfo';
 
 const readFileAsync = promisify(readFile);
