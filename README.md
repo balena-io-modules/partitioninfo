@@ -36,7 +36,7 @@ Documentation
 
 | Param | Type | Description |
 | --- | --- | --- |
-| image | <code>String</code> \| <code>filedisk.Disk</code> | image path or filedisk.Disk instance |
+| image | <code>String</code> \| <code>Buffer</code> \| <code>filedisk.Disk</code> | image path or buffer or filedisk.Disk instance |
 | number | <code>Object</code> | partition number |
 
 **Example**  
@@ -76,7 +76,7 @@ the logical partitions 5, 6 and 7 are physically contained in partiton 1, 2 or 3
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| image | <code>String</code> \| <code>filedisk.Disk</code> |  | image path or filedisk.Disk instance |
+| image | <code>String</code> \| <code>Buffer</code> \| <code>filedisk.Disk</code> |  | image path or buffer or filedisk.Disk instance |
 | options | <code>Object</code> |  |  |
 | [options.offset] | <code>Number</code> | <code>0</code> | where the first partition table will be read from, in bytes |
 | [options.includeExtended] | <code>Boolean</code> | <code>true</code> | whether to include extended partitions or not (only for MBR partition tables) |
