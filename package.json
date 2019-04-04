@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "bluebird": "^3.5.3",
-    "file-disk": "^5.1.0",
+    "file-disk": "^6.0.0",
     "gpt": "^2.0.0",
     "mbr": "^1.1.3",
     "typed-error": "^3.0.2"
