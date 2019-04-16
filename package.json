@@ -52,7 +52,7 @@
   "dependencies": {
     "bluebird": "^3.5.3",
     "file-disk": "^6.0.0",
-    "gpt": "^2.0.0",
+    "gpt": "balena-io-modules/node-gpt#aed641e5b9482620ec62c18d54a543ac0ed34fda",
     "mbr": "^1.1.3",
     "typed-error": "^3.0.2"
   }
