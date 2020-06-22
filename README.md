@@ -7,7 +7,6 @@ partitioninfo
 [![dependencies](https://david-dm.org/balena-io-modules/partitioninfo.svg)](https://david-dm.org/balena-io-modules/partitioninfo.svg)
 [![Build Status](https://travis-ci.org/balena-io-modules/partitioninfo.svg?branch=master)](https://travis-ci.org/balena-io-modules/partitioninfo)
 [![Build status](https://ci.appveyor.com/api/projects/status/udif66t2rsxb43xt/branch/master?svg=true)](https://ci.appveyor.com/project/balena-io/partitioninfo/branch/master)
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/balena-io/chat)
 
 Installation
 ------------
