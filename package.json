@@ -26,8 +26,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "resin-lint --typescript lib tests typings",
-    "prettier": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"lib/**/*.ts\" \"typings/**/*.ts\" \"tests/**/*.ts\"",
+    "lint": "balena-lint --typescript lib tests typings",
+    "prettier": "balena-lint --fix --typescript lib tests typings",
     "build": "tsc",
     "test": "npm run lint && npm run build && mocha -r ts-node/register tests/**/*.spec.ts",
     "readme": "jsdoc2md --template doc/README.hbs build/partitioninfo.js > README.md",
@@ -40,13 +40,13 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@balena/lint": "^5.1.0",
     "@types/bluebird": "^3.5.32",
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.4",
     "chai": "^4.2.0",
     "jsdoc-to-markdown": "^4.0.1",
     "mocha": "^5.2.0",
-    "resin-lint": "^3.0.1",
     "ts-node": "^7.0.1",
     "typescript": "^3.2.2"
   },

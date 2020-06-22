@@ -62,7 +62,7 @@ function gptPartitionDict(
 
 // Only for MBR
 function getPartitionsFromMBRBuf(buf: Buffer): MBR.Partition[] {
-	return new MBR(buf).partitions.filter(p => p.type);
+	return new MBR(buf).partitions.filter((p) => p.type);
 }
 
 async function readFromDisk(
@@ -210,7 +210,9 @@ async function getPartition(
 			throw new PartitionNotFound(partitionNumber);
 		}
 	}
-	const extended = info.partitions.find(p => MBR.Partition.isExtended(p.type));
+	const extended = info.partitions.find((p) =>
+		MBR.Partition.isExtended(p.type),
+	);
 	if (!extended) {
 		throw new PartitionNotFound(partitionNumber);
 	} else {
@@ -241,7 +243,7 @@ async function callWithDisk<ParameterType, ReturnType>(
 	arg: ParameterType,
 ): Promise<ReturnType> {
 	if (isString(pathOrBufferOrDisk)) {
-		return await using(openFile(pathOrBufferOrDisk, 'r'), async fd => {
+		return await using(openFile(pathOrBufferOrDisk, 'r'), async (fd) => {
 			return await fn(new FileDisk(fd), arg);
 		});
 	} else if (Buffer.isBuffer(pathOrBufferOrDisk)) {
