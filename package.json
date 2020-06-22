@@ -3,10 +3,10 @@
   "version": "5.3.4",
   "description": "Get information about a partition from an image file",
   "main": "build/partitioninfo.js",
-  "homepage": "https://github.com/resin-io-modules/partitioninfo",
+  "homepage": "https://github.com/balena-io-modules/partitioninfo",
   "repository": {
     "type": "git",
-    "url": "git://github.com/resin-io-modules/partitioninfo.git"
+    "url": "git://github.com/balena-io-modules/partitioninfo.git"
   },
   "keywords": [
     "partition",
@@ -26,27 +26,27 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "resin-lint --typescript lib tests typings",
-    "prettier": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"lib/**/*.ts\" \"typings/**/*.ts\" \"tests/**/*.ts\"",
+    "lint": "balena-lint --typescript lib tests typings",
+    "prettier": "balena-lint --fix --typescript lib tests typings",
     "build": "tsc",
     "test": "npm run lint && npm run build && mocha -r ts-node/register tests/**/*.spec.ts",
     "readme": "jsdoc2md --template doc/README.hbs build/partitioninfo.js > README.md",
     "prepublish": "npm run test && npm run readme"
   },
-  "author": "Juan Cruz Viotti <juan@resin.io>",
+  "author": "Juan Cruz Viotti <juan@balena.io>",
   "contributors": [
-    "Alexis Svinartchouk <alexis@resin.io>",
-    "Juan Cruz Viotti <juan@resin.io>"
+    "Alexis Svinartchouk <alexis@balena.io>",
+    "Juan Cruz Viotti <juan@balena.io>"
   ],
   "license": "MIT",
   "devDependencies": {
+    "@balena/lint": "^5.1.0",
     "@types/bluebird": "^3.5.32",
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.4",
     "chai": "^4.2.0",
     "jsdoc-to-markdown": "^4.0.1",
     "mocha": "^5.2.0",
-    "resin-lint": "^3.0.1",
     "ts-node": "^7.0.1",
     "typescript": "^3.2.2"
   },

@@ -43,7 +43,7 @@ function gptPartitionDict(gpt, p, index) {
 }
 // Only for MBR
 function getPartitionsFromMBRBuf(buf) {
-    return new MBR(buf).partitions.filter(p => p.type);
+    return new MBR(buf).partitions.filter((p) => p.type);
 }
 function readFromDisk(disk, offset, size) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -163,7 +163,7 @@ function getPartition(disk, partitionNumber) {
                 throw new PartitionNotFound(partitionNumber);
             }
         }
-        const extended = info.partitions.find(p => MBR.Partition.isExtended(p.type));
+        const extended = info.partitions.find((p) => MBR.Partition.isExtended(p.type));
         if (!extended) {
             throw new PartitionNotFound(partitionNumber);
         }
