@@ -144,7 +144,7 @@ async function getDiskPartitions(
 	let extended = null;
 	const mbrBuf = await readFromDisk(disk, offset, MBR_SIZE);
 	const partitions = getPartitionsFromMBRBuf(mbrBuf);
-	if (partitions.length === 1 && partitions[0].type === GPT_PROTECTIVE_MBR) {
+	if (partitions.length >= 1 && partitions[0].type === GPT_PROTECTIVE_MBR) {
 		const gptBuf = await readFromDisk(disk, 0, GPT_SIZE);
 		const gpt = detectGPT(gptBuf);
 		return {

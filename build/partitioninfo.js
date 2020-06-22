@@ -1,13 +1,15 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getPartitions = exports.get = exports.PartitionNotFound = void 0;
 const bluebird_1 = require("bluebird");
 const file_disk_1 = require("file-disk");
 const GPT = require("gpt");
@@ -99,7 +101,7 @@ function getDiskPartitions(disk, { offset, includeExtended, getLogical, }) {
         let extended = null;
         const mbrBuf = yield readFromDisk(disk, offset, MBR_SIZE);
         const partitions = getPartitionsFromMBRBuf(mbrBuf);
-        if (partitions.length === 1 && partitions[0].type === GPT_PROTECTIVE_MBR) {
+        if (partitions.length >= 1 && partitions[0].type === GPT_PROTECTIVE_MBR) {
             const gptBuf = yield readFromDisk(disk, 0, GPT_SIZE);
             const gpt = detectGPT(gptBuf);
             return {
