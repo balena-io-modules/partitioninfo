@@ -4,10 +4,10 @@ partitioninfo
 > Get information about a partition from an image file.
 
 [![npm version](https://badge.fury.io/js/partitioninfo.svg)](http://badge.fury.io/js/partitioninfo)
-[![dependencies](https://david-dm.org/resin-io-modules/partitioninfo.svg)](https://david-dm.org/resin-io-modules/partitioninfo.svg)
-[![Build Status](https://travis-ci.org/resin-io-modules/partitioninfo.svg?branch=master)](https://travis-ci.org/resin-io-modules/partitioninfo)
-[![Build status](https://ci.appveyor.com/api/projects/status/udif66t2rsxb43xt/branch/master?svg=true)](https://ci.appveyor.com/project/resin-io/partitioninfo/branch/master)
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/resin-io/chat)
+[![dependencies](https://david-dm.org/balena-io-modules/partitioninfo.svg)](https://david-dm.org/balena-io-modules/partitioninfo.svg)
+[![Build Status](https://travis-ci.org/balena-io-modules/partitioninfo.svg?branch=master)](https://travis-ci.org/balena-io-modules/partitioninfo)
+[![Build status](https://ci.appveyor.com/api/projects/status/udif66t2rsxb43xt/branch/master?svg=true)](https://ci.appveyor.com/project/balena-io/partitioninfo/branch/master)
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/balena-io/chat)
 
 Installation
 ------------
@@ -97,7 +97,7 @@ partitioninfo.getPartitions('foo/bar.img')
 Support
 -------
 
-If you're having any problem, please [raise an issue](https://github.com/resin-io-modules/partitioninfo/issues/new) on GitHub and the Resin.io team will be happy to help.
+If you're having any problem, please [raise an issue](https://github.com/balena-io-modules/partitioninfo/issues/new) on GitHub and the Resin.io team will be happy to help.
 
 Tests
 -----
@@ -111,10 +111,10 @@ $ npm test
 Contribute
 ----------
 
-- Issue Tracker: [github.com/resin-io-modules/partitioninfo/issues](https://github.com/resin-io-modules/partitioninfo/issues)
-- Source Code: [github.com/resin-io-modules/partitioninfo](https://github.com/resin-io-modules/partitioninfo)
+- Issue Tracker: [github.com/balena-io-modules/partitioninfo/issues](https://github.com/balena-io-modules/partitioninfo/issues)
+- Source Code: [github.com/balena-io-modules/partitioninfo](https://github.com/balena-io-modules/partitioninfo)
 
-Before submitting a PR, please make sure that you include tests, and that resin-lint runs without any warning:
+Before submitting a PR, please make sure that you include tests, and that balena-lint runs without any warning:
 
 ```sh
 $ npm run lint
