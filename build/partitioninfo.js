@@ -1,15 +1,7 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPartitions = exports.get = exports.PartitionNotFound = void 0;
+const tslib_1 = require("tslib");
 const bluebird_1 = require("bluebird");
 const file_disk_1 = require("file-disk");
 const GPT = require("gpt");
@@ -46,14 +38,14 @@ function getPartitionsFromMBRBuf(buf) {
     return new MBR(buf).partitions.filter((p) => p.type);
 }
 function readFromDisk(disk, offset, size) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
         const { buffer } = yield disk.read(Buffer.alloc(size), 0, size, offset);
         return buffer;
     });
 }
 // Only for MBR
 function getLogicalPartitions(disk, index, offset, extendedPartitionOffset, limit) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
         if (extendedPartitionOffset === undefined) {
             extendedPartitionOffset = offset;
         }
@@ -97,7 +89,7 @@ function detectGPT(buffer) {
     throw lastError;
 }
 function getDiskPartitions(disk, { offset, includeExtended, getLogical, }) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
         let extended = null;
         const mbrBuf = yield readFromDisk(disk, offset, MBR_SIZE);
         const partitions = getPartitionsFromMBRBuf(mbrBuf);
@@ -138,7 +130,7 @@ class PartitionNotFound extends typed_error_1.TypedError {
 }
 exports.PartitionNotFound = PartitionNotFound;
 function getPartition(disk, partitionNumber) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
         if (partitionNumber < 1) {
             throw new Error('The partition number must be at least 1.');
         }
@@ -183,9 +175,9 @@ function isString(x) {
     return typeof x === 'string';
 }
 function callWithDisk(fn, pathOrBufferOrDisk, arg) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
         if (isString(pathOrBufferOrDisk)) {
-            return yield bluebird_1.using(file_disk_1.openFile(pathOrBufferOrDisk, 'r'), (fd) => __awaiter(this, void 0, void 0, function* () {
+            return yield bluebird_1.using(file_disk_1.openFile(pathOrBufferOrDisk, 'r'), (fd) => tslib_1.__awaiter(this, void 0, void 0, function* () {
                 return yield fn(new file_disk_1.FileDisk(fd), arg);
             }));
         }
@@ -216,7 +208,7 @@ function callWithDisk(fn, pathOrBufferOrDisk, arg) {
  * 	console.log(information.index)
  */
 function get(disk, partitionNumber) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
         return yield callWithDisk(getPartition, disk, partitionNumber);
     });
 }
@@ -265,7 +257,7 @@ function getPartitions(disk, { offset = 0, includeExtended = true, getLogical = 
     includeExtended: true,
     getLogical: true,
 }) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
         return yield callWithDisk(getDiskPartitions, disk, {
             offset,
             includeExtended,
