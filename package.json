@@ -1,6 +1,6 @@
 {
   "name": "partitioninfo",
-  "version": "5.3.5",
+  "version": "5.3.6",
   "description": "Get information about a partition from an image file",
   "main": "build/partitioninfo.js",
   "homepage": "https://github.com/balena-io-modules/partitioninfo",
