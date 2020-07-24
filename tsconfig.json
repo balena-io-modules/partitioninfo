@@ -5,13 +5,10 @@
 		"outDir": "build",
 		"sourceMap": true,
 		"declaration": true,
-		"target": "es6",
+		"target": "es2018",
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"importHelpers": true,
-		"lib": [
-			"es2016"
-		]
+		"importHelpers": true
 	},
 	"include": [
 		"lib",
