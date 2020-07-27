@@ -95,7 +95,7 @@ partitioninfo.getPartitions('foo/bar.img')
 Support
 -------
 
-If you're having any problem, please [raise an issue](https://github.com/balena-io-modules/partitioninfo/issues/new) on GitHub and the Resin.io team will be happy to help.
+If you're having any problem, please [raise an issue](https://github.com/balena-io-modules/partitioninfo/issues/new) on GitHub and the balena.io team will be happy to help.
 
 Tests
 -----
