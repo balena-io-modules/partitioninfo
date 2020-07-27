@@ -1,6 +1,6 @@
-import { promisify } from 'bluebird';
 import { assert, expect } from 'chai';
 import { readFile } from 'fs';
+import { promisify } from 'util';
 import 'mocha';
 
 import {

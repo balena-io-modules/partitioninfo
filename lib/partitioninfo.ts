@@ -1,5 +1,4 @@
-import { using } from 'bluebird';
-import { BufferDisk, Disk, FileDisk, openFile } from 'file-disk';
+import { BufferDisk, Disk, FileDisk, withOpenFile } from 'file-disk';
 import * as GPT from 'gpt';
 import * as MBR from 'mbr';
 import { TypedError } from 'typed-error';
@@ -243,7 +242,7 @@ async function callWithDisk<ParameterType, ReturnType>(
 	arg: ParameterType,
 ): Promise<ReturnType> {
 	if (isString(pathOrBufferOrDisk)) {
-		return await using(openFile(pathOrBufferOrDisk, 'r'), async (fd) => {
+		return await withOpenFile(pathOrBufferOrDisk, 'r', async (fd) => {
 			return await fn(new FileDisk(fd), arg);
 		});
 	} else if (Buffer.isBuffer(pathOrBufferOrDisk)) {
