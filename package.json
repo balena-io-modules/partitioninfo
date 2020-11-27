@@ -50,7 +50,7 @@
     "typescript": "^3.9.6"
   },
   "dependencies": {
-    "file-disk": "^8.0.0",
+    "file-disk": "^8.0.1",
     "gpt": "^2.0.4",
     "mbr": "^1.1.3",
     "tslib": "^2.0.0",
