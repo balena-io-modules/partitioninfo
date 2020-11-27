@@ -1,0 +1,378 @@
+- version: 6.0.1
+  date: 2020-07-27T18:18:29Z
+  commits:
+    - hash: f840b5ffdacefe0380b97672c46758f9b22a4478
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Nothing
+      body:
+    - hash: 8adf8cb6b261919267b1df8b7aeacd407eaf6e07
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Remove bluebird dependency, update file-disk
+      body:
+    - hash: a1c7e0ef527c09b048a4932c546646ffb6c9583e
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Resin.io -> balena.io
+      body:
+- version: 6.0.0
+  date: 2020-07-24T14:09:23Z
+  commits:
+    - hash: 26af4cbd9a2986afd79a6636818f573c3c12d9d4
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update file-disk to ^7.0.1
+      body:
+    - hash: 023c4c613e0b76761352401134b08867958c45ab
+      author: Alexis Svinartchouk
+      footers:
+        change-type: major
+      subject: Target es2018
+      body:
+- version: 5.3.6
+  date: 2020-07-14T15:55:13Z
+  commits:
+    - hash: 17f2131d23b785ca32ac8b0a538c24529cf2bf48
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update dependencies
+      body:
+    - hash: 1687b63e0cf988829408b28f0b025d4f6a5d9a6a
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Use strict typescript flag
+      body:
+    - hash: b2549a8122617b2383c15d9795fb9f980e5bbe65
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Use tslib
+      body:
+    - hash: 63dc426cede29a387d62fcb33a3eb0a8e7471ca9
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Don't version generated files
+      body:
+- version: 5.3.5
+  date: 2020-06-22T13:00:52Z
+  commits:
+    - hash: b61793f12d6e989824639acbb2e132089d8303f8
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update resin-lint to @balena/lint
+      body:
+    - hash: 6fbd7da4483d470d6c276717b4509c4e86f69011
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Rename resin -> balena
+      body:
+    - hash: 3a09985201f3457c2b0e656b5b1c2e81a98a591a
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Remove gitter link
+      body:
+    - hash: 3c2ccd4cc5f9f5feff6d7ea0bc85b676ee6d0de8
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Remove appveyor link
+      body:
+    - hash: 77f79bad30e70dd2c4ae0a5ccc92546be27014c8
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Run travis tests with node 10 and 12
+      body:
+    - hash: 5a490b8667eac7f286b4316e5de911f2684e5fb9
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Add @types/bluebird to dev dependencies
+      body:
+    - hash: df29f65500b31161d115857783fdb4be89d9bd1f
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Fix GPT detection when the protective MBR has more than one partition
+      body:
+- version: 5.3.4
+  date: 2019-04-17T13:40:36Z
+  commits:
+    - hash: a0bb249778af01ce8167182af1ffcdc7dca79217
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Switch back to the original node-gpt
+      body: As https://github.com/jhermsmeier/node-gpt/pull/3 was merged
+- version: 5.3.3
+  date: 2019-04-16T16:00:47Z
+  commits:
+    - hash: c13d6f34abc0fa6d9dad1bc35f110465ab69e223
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Use balena-io-module's node-gpt
+      body: |-
+        Switch back to the original version when
+        https://github.com/jhermsmeier/node-gpt/pull/3 is merged
+- version: 5.3.2
+  date: 2019-04-04T23:32:47Z
+  commits:
+    - hash: 2673b6ea68f9eb471f61dd83b16d5fafb71913b0
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update README
+      body:
+    - hash: 82fcb61a9a154282ffe3ef93ef4b1c5af748d3b9
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update file-disk to ^6.0.0
+      body:
+- version: 5.3.1
+  date: 2019-03-21T13:09:34Z
+  commits:
+    - hash: 98c6b3f0068a341bdb7434e1934d9ee686fcb8b3
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update resin-lint to ^3.0.1
+      body:
+- version: 5.3.0
+  date: 2019-01-16T11:34:10Z
+  commits:
+    - hash: e58f6a0e86170a73c72c86db381dca921384bfd0
+      author: Alexis Svinartchouk
+      footers:
+        change-type: minor
+      subject: Include guid and name for gpt partitions
+      body:
+- version: 5.2.0
+  date: 2019-01-14T17:10:58Z
+  commits:
+    - hash: 7edc31362669848fad84def37b3214b4b7f98460
+      author: Alexis Svinartchouk
+      footers:
+        change-type: minor
+      subject: Detect gpt partition tables at different offsets
+      body:
+- version: 5.1.0
+  date: 2018-12-21T17:07:43Z
+  commits:
+    - hash: 5df965199be1cde47c287cf8490b1dd9c123a2a9
+      author: Alexis Svinartchouk
+      footers:
+        change-type: minor
+      subject: get and getPartitions now accept Buffers as first parameter
+      body:
+- version: 5.0.0
+  date: 2018-12-21T14:52:56Z
+  commits:
+    - hash: 5dd4b8f5fbe6f90fc994bd5793eb1bd65c558759
+      author: Alexis Svinartchouk
+      footers:
+        change-type: major
+      subject: Switch to typescript
+      body: |-
+        * udpate all dependencies
+        * return Promises, not Bluebirds
+        * stop using lodash
+        * use TypedError
+- version: 4.0.3
+  date: 2018-11-29T16:18:18Z
+  commits:
+    - hash: ab77532c3c4d63664306e4651dbfe4d049de509f
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update file-disk to 5.0.0
+      body:
+    - hash: 2cf2a96f809f342f1d5c4bac8a7e95789a981147
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Change licence to Apache 2
+      body:
+- version: 4.0.2
+  date: 2018-07-06T17:11:40Z
+  commits:
+    - hash: 7fb9ca1fee59caefa7fb8b98a109a3d58d913578
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update node-mbr to 1.1.3
+      body:
+- version: 4.0.1
+  date: 2018-06-08T16:47:37Z
+  commits:
+    - hash: c014c0cddaba76bf68a2d1b06fbcd6820eda534c
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update gpt to 2.0.0
+      body:
+- version: 4.0.0
+  date: 2018-03-27T21:24:15Z
+  commits:
+    - hash: e456c161e8de7f3da2775e1e06ed38ac281b711d
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Lint with resin-lint, don't publish .coffee files
+      body: 'Connects-To: #31'
+    - hash: 25a60a3a31f287e9c57b44cb7e15c032ac77c66a
+      author: Alexis Svinartchouk
+      footers:
+        change-type: major
+      subject: Update file-disk to v4.1.1
+      body: 'Connects-To: #31'
+    - hash: 8e9cf4d75180def2371911d7626b576252ee620e
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Only test with node 6 and 8
+      body: 'Connects-To: #31'
+- version: 3.0.1
+  date: 2018-02-09T18:17:01Z
+  commits:
+    - hash: 725012990614bd9790d693696db1e145ed09604b
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Fix get(disk, index) for logical partitions that are inside an extended partition with LBA
+      body: 'Connects-To: #29'
+- version: 3.0.0
+  date: 2017-10-10T12:52:27Z
+  commits:
+    - hash: f6039653650a8ecf3bf766f69d3ec430dbd31681
+      author: Alexis Svinartchouk
+      footers:
+        change-type: major
+      subject: Support GPT partition tables
+      body: |-
+        This changes the return value of getPartitions()
+        Instead of being a list of partitions, it will now be an object with:
+        * type: 'mbr' or 'gpt'
+        * partitions: the list of partitions as returned before
+        Connects-To: #25
+- version: 2.2.1
+  date: 2017-10-09T17:49:09Z
+  commits:
+    - hash: d0dd2e684752091669e31901105a4a7c7feb78c4
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update built js files and README
+      body: 'Connects-To: #26'
+- version: 2.2.0
+  date: 2017-10-09T16:45:09Z
+  commits:
+    - hash: fe87a1f7e5cc7e0919925929a2a0225777df6629
+      author: Alexis Svinartchouk
+      footers:
+        change-type: minor
+      subject: Add index property to each returned partition
+      body: |-
+        index is like X in /dev/sdaX on Linux
+        Connects-To: #21
+    - hash: 8e0f545577c898f375cfbe6195a5c413d0ddb69c
+      author: Alexis Svinartchouk
+      subject: Update CHANGELOG for VersionBot
+      body:
+- version: 2.1.0
+  date: 2017-08-25T10:01:10Z
+  commits:
+    - hash: 734787ce4c1820c9ede11059ae36987a9959fd80
+      author: Alexis Svinartchouk
+      footers:
+        change-type: minor
+      subject: The extended partition (if any) may not be the last on the disk.
+      body: 'Connects to #19'
+- version: 2.0.1
+  date: 2017-06-23T13:19:01Z
+  commits:
+    - hash: 9a9f73bacff13b162ce8e3b2f02781a0d697abf5
+      author: Alexis Svinartchouk
+      subject: udpate file-disk to 1.0.1
+      body:
+    - hash: 0d11e7c67cf974c57604f9f1bdc19b5f1fe86a3a
+      author: Alexis Svinartchouk
+      subject: Version 2.0.1, update CHANGELOG
+      body:
+    - hash: 4093453c322394ad60f0ec8a3acc61e61ca8c51a
+      author: Alexis Svinartchouk
+      subject: Add node 8 to travis tests.
+      body:
+- version: 2.0.0
+  date: 2017-06-19T17:38:25Z
+  commits:
+    - hash: ed5ced102dac541d9e0fd58262ebb84be5794a9e
+      author: Alexis Svinartchouk
+      footers:
+        change-type: major
+      subject: 'Use the partition number instead of {primary: X, logical: Y}'
+      body: Like Linux does with sdaX.
+- version: 1.3.0
+  date: 2017-06-12T10:03:48Z
+  commits:
+    - hash: 9a9981db1fa31c9919afd60970239ea5257ce509
+      author: Alexis Svinartchouk
+      subject: '* Fix logical partitions reading.'
+      body: |-
+        * Refactor code
+        * Stop using mocks in tests, use a real disk image instead
+- version: 1.2.0
+  date: 2017-06-02T15:52:06Z
+  commits:
+    - hash: b23709a8535107d85910f2472514fd240a007ec9
+      author: Alexis Svinartchouk
+      subject: factorize readPath
+      body:
+    - hash: 7caedbdcd9ae26c309776bb0b1330f468920e48c
+      author: Andrew Scheller
+      subject: Update README with missing info
+      body:
+    - hash: d9af86ba02e6a60ab9d18842b791d44b3ddf79b3
+      author: Alexis Svinartchouk
+      subject: version 1.2.0
+      body:
+    - hash: 30f4de34128c2e8c53eef3bdf5b94812db342c9a
+      author: Alexis Svinartchouk
+      subject: partitioninfo.get result inludes the partition type.
+      body:
+    - hash: 91c6a8f6b081fe24e173fc43f5e4d5c0b4c2b8da
+      author: Alexis Svinartchouk
+      subject: run ci tests with recent node versions
+      body:
+    - hash: e4ea07c2296825cbbc8e6397ba6a4107105598de
+      author: Alexis Svinartchouk
+      subject: Accept filedisk.Disk instances as well as file paths.
+      body:
+    - hash: 7fd4755001311e68343e1ab5e8e71fbf3a0d756f
+      author: Alexios Theodoros Brezas
+      subject: When reading MBR open images only for reading.
+      body: |-
+        r+ opens the file for reading and writing, but we do not need
+        writting permissions.
+        This actually causes problems on our infastructure as we are using
+        overlayfs, and it copies the images when they are opened for writing.
+    - hash: f2f76ddd753af3484876911124029134e9235cb3
+      author: Alexios Theodoros Brezas
+      subject: remove all uses of getPartitionOffset and getPartitionSize
+      body:
+    - hash: 0a25d4afafdf93b890ecb51e62cd77063b2bbcd4
+      author: Alexios Theodoros Brezas
+      subject: get all partitions recursively
+      body:
