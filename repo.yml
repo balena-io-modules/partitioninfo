@@ -1,0 +1,5 @@
+type: node
+upstream:
+  - repo: file-disk
+    url: https://github.com/balena-io-modules/file-disk
+    module: 'file-disk'
