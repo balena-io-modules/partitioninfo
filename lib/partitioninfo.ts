@@ -120,7 +120,7 @@ function detectGPT(buffer: Buffer): GPT {
 	while (blockSize <= 4096) {
 		try {
 			return GPT.parse(buffer.slice(blockSize));
-		} catch (error) {
+		} catch (error: any) {
 			lastError = error;
 		}
 		blockSize *= 2;
