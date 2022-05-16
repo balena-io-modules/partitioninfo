@@ -46,7 +46,7 @@ async function testGetIt(
 		} else {
 			expect(partition).to.deep.equal(expected);
 		}
-	} catch (error) {
+	} catch (error: any) {
 		if (expected === undefined) {
 			expect(error.message).to.deep.equal(
 				`Partition not found: ${partitionNumber}.`,
