@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update dev dependencies
+      hash: 5fd3f1f15b07dd53dde7624c3e28210a925613b8
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Zane Hitchcox
+      nested: []
+  version: 6.0.3
+  title: "'Update dev dependencies'"
+  date: 2022-05-13T15:49:29.610Z
+- commits:
     - subject: Update file-disk from 8.0.0 to 8.0.1
       hash: f7e5d6556623ba3bd7b972402dcb11e99730027b
       body: |
@@ -11,7 +23,7 @@
         - commits:
             - subject: Add versionbot changelog
               hash: be30ba6813603008ef4444cc1acdbb85cdf31db3
-              body: ''
+              body: ""
               footer:
                 Change-type: patch
                 change-type: patch
@@ -20,7 +32,7 @@
           date: 2020-11-26T21:59:04.511Z
     - subject: Add versionbot changelog
       hash: 7c0c3abe479e1bc91edb441b14392e68e12300a7
-      body: ''
+      body: ""
       footer:
         Change-type: patch
         change-type: patch
@@ -41,7 +53,7 @@
       author: Alexis Svinartchouk
       footers:
         change-type: patch
-      subject: 'Remove bluebird dependency, update file-disk'
+      subject: Remove bluebird dependency, update file-disk
       body: null
     - hash: a1c7e0ef527c09b048a4932c546646ffb6c9583e
       author: Alexis Svinartchouk
@@ -144,7 +156,7 @@
       footers:
         change-type: patch
       subject: Switch back to the original node-gpt
-      body: 'As https://github.com/jhermsmeier/node-gpt/pull/3 was merged'
+      body: As https://github.com/jhermsmeier/node-gpt/pull/3 was merged
 - version: 5.3.3
   date: 2019-04-16T16:00:47.000Z
   commits:
@@ -260,20 +272,20 @@
       author: Alexis Svinartchouk
       footers:
         change-type: patch
-      subject: 'Lint with resin-lint, don''t publish .coffee files'
-      body: 'Connects-To: #31'
+      subject: Lint with resin-lint, don't publish .coffee files
+      body: "Connects-To: #31"
     - hash: 25a60a3a31f287e9c57b44cb7e15c032ac77c66a
       author: Alexis Svinartchouk
       footers:
         change-type: major
       subject: Update file-disk to v4.1.1
-      body: 'Connects-To: #31'
+      body: "Connects-To: #31"
     - hash: 8e9cf4d75180def2371911d7626b576252ee620e
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Only test with node 6 and 8
-      body: 'Connects-To: #31'
+      body: "Connects-To: #31"
 - version: 3.0.1
   date: 2018-02-09T18:17:01.000Z
   commits:
@@ -281,10 +293,9 @@
       author: Alexis Svinartchouk
       footers:
         change-type: patch
-      subject: >-
-        Fix get(disk, index) for logical partitions that are inside an extended
+      subject: Fix get(disk, index) for logical partitions that are inside an extended
         partition with LBA
-      body: 'Connects-To: #29'
+      body: "Connects-To: #29"
 - version: 3.0.0
   date: 2017-10-10T12:52:27.000Z
   commits:
@@ -307,7 +318,7 @@
       footers:
         change-type: patch
       subject: Update built js files and README
-      body: 'Connects-To: #26'
+      body: "Connects-To: #26"
 - version: 2.2.0
   date: 2017-10-09T16:45:09.000Z
   commits:
@@ -331,7 +342,7 @@
       footers:
         change-type: minor
       subject: The extended partition (if any) may not be the last on the disk.
-      body: 'Connects to #19'
+      body: "Connects to #19"
 - version: 2.0.1
   date: 2017-06-23T13:19:01.000Z
   commits:
@@ -341,7 +352,7 @@
       body: null
     - hash: 0d11e7c67cf974c57604f9f1bdc19b5f1fe86a3a
       author: Alexis Svinartchouk
-      subject: 'Version 2.0.1, update CHANGELOG'
+      subject: Version 2.0.1, update CHANGELOG
       body: null
     - hash: 4093453c322394ad60f0ec8a3acc61e61ca8c51a
       author: Alexis Svinartchouk
@@ -354,14 +365,14 @@
       author: Alexis Svinartchouk
       footers:
         change-type: major
-      subject: 'Use the partition number instead of {primary: X, logical: Y}'
+      subject: "Use the partition number instead of {primary: X, logical: Y}"
       body: Like Linux does with sdaX.
 - version: 1.3.0
   date: 2017-06-12T10:03:48.000Z
   commits:
     - hash: 9a9981db1fa31c9919afd60970239ea5257ce509
       author: Alexis Svinartchouk
-      subject: '* Fix logical partitions reading.'
+      subject: "* Fix logical partitions reading."
       body: |-
         * Refactor code
         * Stop using mocks in tests, use a real disk image instead
